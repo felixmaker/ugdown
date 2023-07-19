@@ -1,0 +1,93 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0400
+header_name {.h}
+code_name {.cxx}
+class UserInterface {open
+} {
+  Function {make_window()} {open
+  } {
+    Fl_Window window {
+      label {Add Url} open
+      xywh {582 217 460 400} type Double resizable modal hide
+    } {
+      Fl_Flex {} {open
+        xywh {0 0 460 400} margins {10 10 10 10} gap 5 set_size_tuples {2  0 85  2 25 }
+      } {
+        Fl_Flex {} {open selected
+          xywh {10 10 440 85} margins {100 0 0 0} gap 5 set_size_tuples {3  0 25  1 25  2 25 }
+        } {
+          Fl_Input input_url {
+            label {Download Url: }
+            xywh {110 10 340 25}
+          }
+          Fl_Flex {} {open
+            xywh {110 40 340 25} type HORIZONTAL gap 8 set_size_tuples {1  1 25 }
+          } {
+            Fl_File_Input input_dir {
+              label {Save to Dir: }
+              xywh {110 40 307 25}
+            }
+            Fl_Button btn_select_dir {
+              label {@-1fileopen}
+              xywh {425 40 25 25}
+            }
+          }
+          Fl_Flex {} {open
+            xywh {110 70 340 25} type HORIZONTAL gap 8 set_size_tuples {1  1 70 }
+          } {
+            Fl_Choice choice_engine {
+              label {By Engine:} open
+              xywh {110 70 262 25} down_box BORDER_BOX
+            } {}
+            Fl_Button btn_detect {
+              label Detect
+              xywh {380 70 70 25}
+            }
+          }
+        }
+        Fl_Flex {} {open
+          xywh {10 100 440 260} gap 5 set_size_tuples {2  0 25  1 25 }
+        } {
+          Fl_Flex {} {open
+            xywh {10 100 440 25} type HORIZONTAL set_size_tuples {1  0 35 }
+          } {
+            Fl_Box {} {
+              label {Title: }
+              xywh {10 100 35 25} align 20
+            }
+            Fl_Output output_title {
+              xywh {45 100 405 25}
+            }
+          }
+          Fl_Flex {} {open
+            xywh {10 130 440 25} type HORIZONTAL
+          } {
+            Fl_Box {} {
+              label {Download Option: }
+              xywh {10 130 220 25} align 20
+            }
+            Fl_Check_Button check_all {
+              label {Select All}
+              xywh {230 130 220 25} down_box DOWN_BOX
+            }
+          }
+          Fl_Check_Browser checkbrowser {
+            xywh {10 160 440 200}
+          }
+        }
+        Fl_Flex {} {
+          xywh {10 365 440 25} type HORIZONTAL gap 8 set_size_tuples {2  0 200  1 70 }
+        } {
+          Fl_Button btn_submit {
+            label {Add Select to Task Queue}
+            xywh {10 365 200 25}
+          }
+          Fl_Button btn_cancel {
+            label Cancel
+            xywh {218 365 70 25}
+          }
+        }
+      }
+    }
+  }
+}

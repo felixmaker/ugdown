@@ -1,0 +1,98 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0400
+header_name {.h}
+code_name {.cxx}
+class UserInterface {open
+} {
+  Function {make_window()} {open
+  } {
+    Fl_Window window {
+      label {UgDown - Scrapes the web at ease!} open
+      xywh {357 75 760 460} type Double resizable visible
+    } {
+      Fl_Flex {} {open
+        xywh {0 0 760 460} set_size_tuples {2  0 25  1 25 }
+      } {
+        Fl_Menu_Bar menubar {open
+          xywh {0 0 760 25}
+        } {
+          Submenu {} {
+            label Task
+            xywh {25 25 100 20}
+          } {
+            MenuItem {} {
+              label {Add Url}
+              xywh {30 30 100 20}
+            }
+            MenuItem {} {
+              label {Add Playlist}
+              xywh {25 25 100 20}
+            }
+            MenuItem {} {
+              label Exit
+              xywh {25 25 100 20}
+            }
+          }
+          Submenu {} {
+            label Option
+            xywh {10 10 100 20}
+          } {
+            MenuItem {} {
+              label {Global Option}
+              xywh {15 15 100 20}
+            }
+          }
+          Submenu {} {
+            label Tools
+            xywh {0 0 100 20}
+          } {
+            MenuItem {} {
+              label {Tool A}
+              xywh {0 0 100 20}
+            }
+          }
+          Submenu {} {
+            label Help
+            xywh {10 10 100 20}
+          } {
+            MenuItem {} {
+              label Homepage
+              xywh {0 0 100 20}
+            }
+            MenuItem {} {
+              label About
+              xywh {0 0 100 20}
+            }
+          }
+        }
+        Fl_Flex {} {open
+          xywh {0 25 760 25} type HORIZONTAL set_size_tuples {5  0 25  1 25  2 25  3 25  4 25 }
+        } {
+          Fl_Button btn_add {
+            label {@-2+}
+            xywh {0 25 25 25}
+          }
+          Fl_Button btn_start {
+            label {@-1>}
+            xywh {25 25 25 25}
+          }
+          Fl_Button btn_stop {
+            label {@-5square}
+            xywh {50 25 25 25}
+          }
+          Fl_Button btn_delete {
+            label {@-2menu}
+            xywh {75 25 25 25}
+          }
+          Fl_Button btn_reload {
+            label {@-3reload}
+            xywh {100 25 25 25}
+          }
+        }
+        Fl_Group table_parent {open selected
+          xywh {0 50 760 410}
+        } {}
+      }
+    }
+  }
+}

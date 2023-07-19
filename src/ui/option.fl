@@ -1,0 +1,50 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0400
+header_name {.h}
+code_name {.cxx}
+class UserInterface {open
+} {
+  Function {make_window()} {open
+  } {
+    Fl_Window {} {
+      label Options open
+      xywh {56 271 550 400} type Double visible
+    } {
+      Fl_Flex {} {open
+        xywh {0 0 550 400} margins {5 5 5 5} gap 5 set_size_tuples {1  1 35 }
+      } {
+        Fl_Tabs {} {open
+          xywh {5 5 540 350}
+        } {
+          Fl_Flex {} {
+            label General open selected
+            xywh {10 30 530 320} margins {5 5 5 5} gap 2 set_size_tuples {2  0 20  1 25 }
+          } {
+            Fl_Box {} {
+              label {Language: }
+              xywh {15 35 520 20} align 20
+            }
+            Fl_Input_Choice {} {open
+              xywh {15 57 520 25}
+            } {}
+          }
+        }
+        Fl_Flex {} {open
+          xywh {5 360 540 35} type HORIZONTAL margins {5 5 5 5} gap 5 set_size_tuples {2  1 75  2 75 }
+        } {
+          Fl_Box {} {
+            xywh {10 365 370 25}
+          }
+          Fl_Button {} {
+            label Reset
+            xywh {385 365 75 25}
+          }
+          Fl_Button {} {
+            label Close
+            xywh {465 365 75 25}
+          }
+        }
+      }
+    }
+  }
+}

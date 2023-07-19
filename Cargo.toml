@@ -1,0 +1,18 @@
+[package]
+name = "ugdown"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.71"
+fl2rust-macro = "0.5.15"
+fltk = "1.4.7"
+fltk-table = "0.3.0"
+fltk-theme = "0.7.1"
+lazy_static = "1.4.0"
+regex = "1.9.1"
+serde = { version = "1.0.171", features = ["derive"] }
+serde_json = "1.0.102"
+uuid = { version = "1.4.0", features = ["v4"] }
