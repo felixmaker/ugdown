@@ -71,3 +71,9 @@ impl MainForm {
         Self { ui, add_url_dialog }
     }
 }
+
+impl StatusBar for ui::main::UserInterface {
+    fn get_status_bar(&self) -> fltk::frame::Frame {
+        self.label_status.clone()
+    }
+}

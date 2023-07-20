@@ -11,7 +11,7 @@ class UserInterface {open
       xywh {357 75 760 460} type Double resizable visible
     } {
       Fl_Flex {} {open
-        xywh {0 0 760 460} set_size_tuples {2  0 25  1 25 }
+        xywh {0 0 760 460} set_size_tuples {3  0 25  1 25  3 24 }
       } {
         Fl_Menu_Bar menubar {open
           xywh {0 0 760 25}
@@ -89,9 +89,13 @@ class UserInterface {open
             xywh {100 25 25 25}
           }
         }
-        Fl_Group table_parent {open selected
-          xywh {0 50 760 410}
+        Fl_Group table_parent {
+          xywh {0 50 760 386}
         } {}
+        Fl_Box label_status {
+          label {Hello! Have a nice day!} selected
+          xywh {0 436 760 24} box DOWN_FRAME align 20
+        }
       }
     }
   }

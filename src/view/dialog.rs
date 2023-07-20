@@ -8,7 +8,7 @@ use std::{
 use crate::downloader::*;
 use fltk::{prelude::*, *};
 
-use super::utils::size_to_string;
+use super::{utils::size_to_string, StatusBar};
 
 mod add_url_dialog {
     fl2rust_macro::include_ui!("./src/ui/add_url.fl");
@@ -17,23 +17,22 @@ mod add_url_dialog {
 #[derive(Clone)]
 pub struct AddUrlDialog {
     current_select: Rc<RefCell<Option<Vec<DownloadInfo>>>>,
-    add_url_dialog: add_url_dialog::UserInterface,
+    ui: add_url_dialog::UserInterface,
 }
 
 impl AddUrlDialog {
     pub fn default() -> Self {
-        let mut add_url_dialog = add_url_dialog::UserInterface::make_window();
+        let mut ui = add_url_dialog::UserInterface::make_window();
         let current_idx: Arc<Mutex<HashMap<i32, DownloadInfo>>> = Default::default();
         let current_select: Rc<RefCell<Option<Vec<DownloadInfo>>>> = Default::default();
 
-        add_url_dialog
-            .choice_engine
+        ui.choice_engine
             .add_choice(get_engine_names().join("|").as_str());
-        add_url_dialog.choice_engine.set_value(0);
+        ui.choice_engine.set_value(0);
 
-        add_url_dialog.btn_detect.set_callback({
+        ui.btn_detect.set_callback({
             let current_idx = current_idx.clone();
-            let mut add_url_dialog = add_url_dialog.clone();
+            let mut add_url_dialog = ui.clone();
             move |_| {
                 let url = add_url_dialog.input_url.value().trim().to_string();
                 if url.len() > 0 {
@@ -76,8 +75,9 @@ impl AddUrlDialog {
                                     }
                                 }
                                 Err(_) => {
+                                    add_url_dialog.set_status_bar_error("Failed to detect this url!");
                                     add_url_dialog.btn_detect.activate()
-                                }
+                                },
                             }
                         });
                     }
@@ -85,8 +85,8 @@ impl AddUrlDialog {
             }
         });
 
-        add_url_dialog.btn_submit.set_callback({
-            let mut add_url_dialog = add_url_dialog.clone();
+        ui.btn_submit.set_callback({
+            let mut add_url_dialog = ui.clone();
             let current_select = current_select.clone();
             let current_idx = current_idx.clone();
             move |_| {
@@ -118,13 +118,13 @@ impl AddUrlDialog {
             }
         });
 
-        add_url_dialog.btn_cancel.set_callback({
-            let mut add_url_dialog = add_url_dialog.clone();
+        ui.btn_cancel.set_callback({
+            let mut add_url_dialog = ui.clone();
             move |_| add_url_dialog.window.hide()
         });
 
-        add_url_dialog.btn_select_dir.set_callback({
-            let mut add_url_dialog = add_url_dialog.clone();
+        ui.btn_select_dir.set_callback({
+            let mut add_url_dialog = ui.clone();
             move |_| {
                 if let Some(dir) =
                     dialog::dir_chooser("Choose dir to save download file", "", false)
@@ -134,8 +134,8 @@ impl AddUrlDialog {
             }
         });
 
-        add_url_dialog.check_all.set_callback({
-            let mut add_url_dialog = add_url_dialog.clone();
+        ui.check_all.set_callback({
+            let mut add_url_dialog = ui.clone();
             move |_| {
                 if add_url_dialog.check_all.is_checked() {
                     add_url_dialog.checkbrowser.check_all();
@@ -145,18 +145,20 @@ impl AddUrlDialog {
             }
         });
 
-        Self {
-            current_select,
-            // current_idx,
-            add_url_dialog,
-        }
+        Self { current_select, ui }
     }
 
     pub fn request_download_info(&mut self) -> Option<Vec<DownloadInfo>> {
-        self.add_url_dialog.window.show();
-        while self.add_url_dialog.window.shown() {
+        self.ui.window.show();
+        while self.ui.window.shown() {
             app::wait();
         }
         self.current_select.borrow_mut().take()
+    }
+}
+
+impl StatusBar for add_url_dialog::UserInterface {
+    fn get_status_bar(&self) -> fltk::frame::Frame {
+        self.label_status.clone()
     }
 }
