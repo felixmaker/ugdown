@@ -25,9 +25,11 @@ impl MainForm {
         ui.btn_add.set_callback({
             let mut add_url_dialog = add_url_dialog.clone();
             let mut task_table = task_table.clone();
+            let ui = ui.clone();
             move |_| {
                 if let Some(download_info_vec) = add_url_dialog.request_download_info() {
                     task_table.add_tasks(&download_info_vec);
+                    ui.set_status_bar_success(&format!("{}", download_info_vec.len()));
                 }
             }
         });

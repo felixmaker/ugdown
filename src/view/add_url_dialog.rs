@@ -73,6 +73,7 @@ impl AddUrlDialog {
                                     if add_url_dialog.btn_detect.active() == false {
                                         add_url_dialog.btn_detect.activate()
                                     }
+                                    add_url_dialog.set_status_bar_success("Detected successfully!");
                                 }
                                 Err(err) => {
                                     println!("{}", err);
@@ -114,7 +115,10 @@ impl AddUrlDialog {
                     }
 
                     *current_select.borrow_mut() = Some(current_task);
+                    add_url_dialog.set_status_bar_success("Task add");
                     add_url_dialog.window.hide();
+                } else {
+                    add_url_dialog.set_status_bar_error("You need to set output dir!");
                 }
             }
         });
@@ -131,6 +135,7 @@ impl AddUrlDialog {
                     dialog::dir_chooser("Choose dir to save download file", "", false)
                 {
                     add_url_dialog.input_dir.set_value(&dir);
+                    add_url_dialog.set_status_bar_message(&format!("Set ouput dir to {}", dir))
                 }
             }
         });
