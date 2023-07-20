@@ -1,8 +1,6 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, process::Child};
 
 use anyhow::Result;
-
-mod watch;
 
 mod lux;
 mod youget;
@@ -27,21 +25,17 @@ pub struct SaveOption {
     pub file_name: String,
 }
 
-trait Downloader {
-    fn get_downloader_name() -> String;
-    fn get_stream_info(url: &str) -> Result<HashMap<String, DownloadInfo>>;
-    fn download<F>(url: &str, output_path: &str, output_name: &str, callback: F) -> Result<()>
-    where
-        F: Fn(f64) + Clone;
-    fn download_by_id<F>(
+pub trait Downloader {
+    fn get_downloader_name(&self) -> String;
+    fn get_stream_info(&self, url: &str) -> Result<HashMap<String, DownloadInfo>>;
+    fn execute_download(
+        &self,
         url: &str,
         id: &str,
         output_dir: &str,
         output_name: &str,
-        callback: F,
-    ) -> Result<()>
-    where
-        F: Fn(f64) + Clone;
+    ) -> Result<Child>;
+    fn output_in_stderr(&self) -> bool;
 }
 
 use lux::Lux;
@@ -54,50 +48,36 @@ pub fn get_engine_names() -> Vec<String> {
         .to_vec()
 }
 
+pub fn get_engine(engine: &str) -> Result<Box<dyn Downloader>> {
+    match engine.to_ascii_lowercase().trim() {
+        "lux" => Ok(Box::new(Lux {})),
+        "you-get" | "youget" => Ok(Box::new(Youget {})),
+        "youtube-dl" | "youtubedl" => Ok(Box::new(Youtubedl {})),
+        _ => Err(anyhow::anyhow!("engine are not supported {}", engine)),
+    }
+}
+
 pub fn get_stream_info(engine: &str, url: &str) -> Result<HashMap<String, DownloadInfo>> {
-    match engine.to_ascii_lowercase().trim() {
-        "lux" => Lux::get_stream_info(url),
-        "you-get" | "youget" => Youget::get_stream_info(url),
-        "youtube-dl" | "youtubedl" => Youtubedl::get_stream_info(url),
-        _ => Err(anyhow::anyhow!("engine are not supported {}", engine)),
-    }
+    let engine = get_engine(engine)?;
+    engine.get_stream_info(url)
 }
 
-pub fn download<F>(
-    engine: &str,
-    url: &str,
-    output_dir: &str,
-    output_name: &str,
-    callback: F,
-) -> Result<()>
-where
-    F: Fn(f64) + Clone,
-{
-    match engine.to_ascii_lowercase().trim() {
-        "lux" => Lux::download(url, output_dir, output_name, callback),
-        "you-get" | "youget" => Youget::download(url, output_dir, output_name, callback),
-        "youtube-dl" | "youtubedl" => Youtubedl::download(url, output_dir, output_name, callback),
-        _ => Err(anyhow::anyhow!("engine are not supported {}", engine)),
-    }
+pub fn execute_download_info(download_info: &DownloadInfo) -> Result<(Child, bool)> {
+    let download_info = download_info.clone();
+    let (output_dir, output_name) = download_info
+        .save_option
+        .and_then(|x| Some((x.output_dir, x.file_name)))
+        .unwrap_or((
+            "./".to_owned(),
+            format!("{}.{}", download_info.title, download_info.ext),
+        ));
+
+    let engine = get_engine(&download_info.downloader)?;
+    let url = download_info.url;
+    let id = download_info.stream_id;
+    Ok((
+        engine.execute_download(&url, &id, &output_dir, &output_name)?,
+        engine.output_in_stderr(),
+    ))
 }
 
-pub fn download_by_id<F>(
-    engine: &str,
-    url: &str,
-    id: &str,
-    output_dir: &str,
-    output_name: &str,
-    callback: F,
-) -> Result<()>
-where
-    F: Fn(f64) + Clone,
-{
-    match engine.to_ascii_lowercase().trim() {
-        "lux" => Lux::download_by_id(url, id, output_dir, output_name, callback),
-        "you-get" | "youget" => Youget::download_by_id(url, id, output_dir, output_name, callback),
-        "youtube-dl" | "youtubedl" => {
-            Youtubedl::download_by_id(url, id, output_dir, output_name, callback)
-        }
-        _ => Err(anyhow::anyhow!("engine are not supported {}", engine)),
-    }
-}

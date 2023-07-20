@@ -1,4 +1,7 @@
-use std::{collections::HashMap, process::Stdio};
+use std::{
+    collections::HashMap,
+    process::{Child, Stdio},
+};
 
 use anyhow::Result;
 use serde::Deserialize;
@@ -43,11 +46,11 @@ enum YougetSrc {
 pub struct Youget {}
 
 impl Downloader for Youget {
-    fn get_downloader_name() -> String {
+    fn get_downloader_name(&self) -> String {
         "Youget".to_owned()
     }
 
-    fn get_stream_info(url: &str) -> Result<HashMap<String, DownloadInfo>> {
+    fn get_stream_info(&self, url: &str) -> Result<HashMap<String, DownloadInfo>> {
         let result = std::process::Command::new("you-get")
             .arg("--json")
             .arg(url)
@@ -61,7 +64,6 @@ impl Downloader for Youget {
         let title = &result.title;
 
         for (stream_id, stream_node) in &result.streams {
-            
             let info = DownloadInfo {
                 url: url.to_string(),
                 site: site.clone(),
@@ -70,7 +72,7 @@ impl Downloader for Youget {
                 stream_id: stream_id.clone(),
                 stream_name: stream_node.quality.clone(),
                 stream_size: stream_node.size,
-                downloader: Self::get_downloader_name(),
+                downloader: self.get_downloader_name(),
                 save_option: None,
             };
 
@@ -80,30 +82,13 @@ impl Downloader for Youget {
         Ok(info_map)
     }
 
-    fn download<F>(url: &str, output_dir: &str, output_file: &str, callback: F) -> anyhow::Result<()>
-    where
-        F: Fn(f64) + Clone,
-    {
-        let child = std::process::Command::new("you-get")
-            .arg("-o")
-            .arg(output_dir)
-            .arg("-O")
-            .arg(output_file)
-            .arg(url)
-            .stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::null())
-            .spawn()?;
-
-        super::watch::watch_progress(child.stdout.unwrap(), callback);
-
-        Ok(())
-    }
-
-    fn download_by_id<F>(url: &str, id: &str, output_dir: &str, output_file: &str, callback: F) -> anyhow::Result<()>
-    where
-        F: Fn(f64) + Clone,
-    {
+    fn execute_download(
+        &self,
+        url: &str,
+        id: &str,
+        output_dir: &str,
+        output_file: &str,
+    ) -> anyhow::Result<Child> {
         let child = std::process::Command::new("you-get")
             .arg("--format")
             .arg(id)
@@ -117,8 +102,10 @@ impl Downloader for Youget {
             .stderr(Stdio::null())
             .spawn()?;
 
-        super::watch::watch_progress(child.stdout.unwrap(), callback);
+        Ok(child)
+    }
 
-        Ok(())
+    fn output_in_stderr(&self) -> bool {
+        false
     }
 }

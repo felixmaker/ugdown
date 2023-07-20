@@ -1,4 +1,7 @@
-use std::{collections::HashMap, process::Stdio};
+use std::{
+    collections::HashMap,
+    process::{Child, Stdio},
+};
 
 use anyhow::Result;
 use serde::Deserialize;
@@ -48,11 +51,11 @@ struct LuxInfo {
 pub struct Lux {}
 
 impl Downloader for Lux {
-    fn get_downloader_name() -> String {
+    fn get_downloader_name(&self) -> String {
         "Lux".to_owned()
     }
 
-    fn get_stream_info(url: &str) -> Result<HashMap<String, DownloadInfo>> {
+    fn get_stream_info(&self,url: &str) -> Result<HashMap<String, DownloadInfo>> {
         let result = std::process::Command::new("lux")
             .arg("-j")
             .arg(url)
@@ -79,7 +82,7 @@ impl Downloader for Lux {
                 stream_id: stream_id.clone(),
                 stream_name: stream_node.quality.clone(),
                 stream_size: stream_node.size,
-                downloader: Self::get_downloader_name(),
+                downloader: self.get_downloader_name(),
                 save_option: None,
             };
 
@@ -89,35 +92,12 @@ impl Downloader for Lux {
         Ok(info_map)
     }
 
-    fn download<F>(
+    fn execute_download(&self,
         url: &str,
+        id: &str,
         output_path: &str,
         output_name: &str,
-        callback: F,
-    ) -> anyhow::Result<()>
-    where
-        F: Fn(f64) + Clone,
-    {
-        let child = std::process::Command::new("lux")
-            .arg("-O")
-            .arg(output_path)
-            .arg("-o")
-            .arg(output_name)
-            .arg(url)
-            .stdin(Stdio::null())
-            .stdout(Stdio::null())
-            .stderr(Stdio::piped())
-            .spawn()?;
-
-        super::watch::watch_progress(child.stderr.unwrap(), callback);
-
-        Ok(())
-    }
-
-    fn download_by_id<F>(url: &str, id: &str, output_path: &str, output_name: &str, callback: F) -> anyhow::Result<()>
-    where
-        F: Fn(f64) + Clone,
-    {
+    ) -> anyhow::Result<Child> {
         let child = std::process::Command::new("lux")
             .arg("-f")
             .arg(id)
@@ -131,8 +111,10 @@ impl Downloader for Lux {
             .stderr(Stdio::piped())
             .spawn()?;
 
-        super::watch::watch_progress(child.stderr.unwrap(), callback);
+        Ok(child)
+    }
 
-        Ok(())
+    fn output_in_stderr(&self) -> bool {
+        true
     }
 }

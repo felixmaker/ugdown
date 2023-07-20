@@ -1,4 +1,7 @@
-use std::{collections::HashMap, process::Stdio, path::{Path, PathBuf}};
+use std::{
+    collections::HashMap,
+    process::{Child, Stdio},
+};
 
 use anyhow::Result;
 use serde::Deserialize;
@@ -67,11 +70,11 @@ struct YoutuledlSubtitleNode {}
 pub struct Youtubedl {}
 
 impl Downloader for Youtubedl {
-    fn get_downloader_name() -> String {
+    fn get_downloader_name(&self) -> String {
         "Youtube-dl".to_owned()
     }
 
-    fn get_stream_info(url: &str) -> Result<HashMap<String, DownloadInfo>> {
+    fn get_stream_info(&self, url: &str) -> Result<HashMap<String, DownloadInfo>> {
         let result = std::process::Command::new("youtube-dl")
             .arg("-j")
             .arg(url)
@@ -93,7 +96,7 @@ impl Downloader for Youtubedl {
                 stream_id: format_node.format_id.clone(),
                 stream_name: format_node.format.clone(),
                 stream_size: format_node.filesize,
-                downloader: Self::get_downloader_name(),
+                downloader: self.get_downloader_name(),
                 save_option: None,
             };
 
@@ -103,29 +106,13 @@ impl Downloader for Youtubedl {
         Ok(info_map)
     }
 
-    fn download<F>(url: &str, output_dir: &str, output_name: &str, callback: F) -> anyhow::Result<()>
-    where
-        F: Fn(f64) + Clone,
-    {
-        let output = format!("{}/{}", output_dir, output_name);
-        let child = std::process::Command::new("youtube-dl")
-            .arg("-o")
-            .arg(output)
-            .arg(url)
-            .stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::null())
-            .spawn()?;
-
-        super::watch::watch_progress(child.stdout.unwrap(), callback);
-
-        Ok(())
-    }
-
-    fn download_by_id<F>(url: &str, id: &str, output_dir: &str, output_name: &str, callback: F) -> anyhow::Result<()>
-    where
-        F: Fn(f64) + Clone,
-    {
+    fn execute_download(
+        &self,
+        url: &str,
+        id: &str,
+        output_dir: &str,
+        output_name: &str,
+    ) -> anyhow::Result<Child> {
         let output = format!("{}/{}", output_dir, output_name);
         let child = std::process::Command::new("youtube-dl")
             .arg("-f")
@@ -137,9 +124,10 @@ impl Downloader for Youtubedl {
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
             .spawn()?;
+        Ok(child)
+    }
 
-        super::watch::watch_progress(child.stdout.unwrap(), callback);
-
-        Ok(())
+    fn output_in_stderr(&self) -> bool {
+        false
     }
 }
