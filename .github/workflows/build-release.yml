@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            code-target: win32-x64
+            binary_postfix: ".exe"
+          - os: windows-latest
+            target: i686-pc-windows-msvc
+            code-target: win32-ia32
+            binary_postfix: ".exe"
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            code-target: linux-x64
+            binary_postfix: ""
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            code-target: darwin-x64
+            binary_postfix: ""
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            code-target: darwin-arm64
+            binary_postfix: ""
+          
+    name: release for ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - id: get_version
+        uses: battila7/get-version-action@v2
+      - name: Install deps for linux build
+        if: matrix.os == 'ubuntu-latest' 
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpango1.0-dev libx11-dev libxext-dev libxft-dev libxinerama-dev libxcursor-dev libxrender-dev libxfixes-dev libpng-dev libgl1-mesa-dev libglu1-mesa-dev
+      - name: Configure Rust Target
+        run: |
+          rustup update
+          rustup target add ${{ matrix.target }}
+      - uses: actions/checkout@v3
+      - name: Build release for ${{ matrix.target }}
+        run: cargo build --release --target=${{ matrix.target }}
+      - name: Packaging binary
+        run: |
+          7z a ugdown-${{ steps.get_version.outputs.version }}-${{ matrix.code-target }}.zip ./target/${{ matrix.target }}/release/ugdown${{ matrix.binary_postfix }} ./LICENSE ./README.md
+      - name: Calculate Sha256 (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: |
+          sha256sum ugdown-${{ steps.get_version.outputs.version }}-${{ matrix.code-target }}.zip > ugdown-${{ steps.get_version.outputs.version }}-${{ matrix.code-target }}.zip.sha256sum
+      - name: Calculate Sha256 (Not Windows)
+        if: matrix.os != 'windows-latest'
+        shell: bash
+        run: |
+          shasum -a 256 ugdown-${{ steps.get_version.outputs.version }}-${{ matrix.code-target }}.zip > ugdown-${{ steps.get_version.outputs.version }}-${{ matrix.code-target }}.zip.sha256sum 
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ugdown-*.zip*
+          file_glob: true
+          tag: ${{ github.ref }}
+          overwrite: true
