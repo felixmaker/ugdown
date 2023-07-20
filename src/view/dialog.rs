@@ -17,7 +17,6 @@ mod add_url_dialog {
 #[derive(Clone)]
 pub struct AddUrlDialog {
     current_select: Rc<RefCell<Option<Vec<DownloadInfo>>>>,
-    // current_idx: Arc<Mutex<HashMap<i32, DownloadInfo>>>,
     add_url_dialog: add_url_dialog::UserInterface,
 }
 
@@ -44,8 +43,8 @@ impl AddUrlDialog {
                         std::thread::spawn({
                             let current_idx = current_idx.clone();
                             let mut add_url_dialog = add_url_dialog.clone();
-                            move || {
-                                if let Ok(info_map) = get_stream_info(&engine, &url) {
+                            move || match get_stream_info(&engine, &url) {
+                                Ok(info_map) => {
                                     let mut current_idx = current_idx.lock().unwrap();
                                     current_idx.clear();
 
@@ -75,6 +74,9 @@ impl AddUrlDialog {
                                     if add_url_dialog.btn_detect.active() == false {
                                         add_url_dialog.btn_detect.activate()
                                     }
+                                }
+                                Err(_) => {
+                                    add_url_dialog.btn_detect.activate()
                                 }
                             }
                         });

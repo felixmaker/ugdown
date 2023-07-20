@@ -76,6 +76,8 @@ impl Downloader for Youtubedl {
 
     fn get_stream_info(&self, url: &str) -> Result<HashMap<String, DownloadInfo>> {
         let result = std::process::Command::new("youtube-dl")
+            .arg("--socket-timeout")
+            .arg("4")
             .arg("-j")
             .arg(url)
             .output()?;
