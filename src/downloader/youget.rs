@@ -8,34 +8,22 @@ use serde::Deserialize;
 
 use super::{DownloadInfo, Downloader};
 
-#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct YougetNode {
-    url: String,
     title: String,
     site: String,
     streams: HashMap<String, YougetStreamsNode>,
-    audiolang: Option<String>, // Unknown
-    extra: Option<YougetExtra>,
 }
 
-#[allow(dead_code)]
-#[derive(Debug, Deserialize)]
-struct YougetExtra {
-    referer: String,
-    ua: String,
-}
-
-#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 struct YougetStreamsNode {
-    container: String,
-    quality: String,
+    container: Option<String>,
+    quality: Option<String>,
     size: usize,
-    src: Vec<YougetSrc>,
+    // src: Vec<YougetSrc>,
 }
 
-#[allow(dead_code)]
+#[allow(unused)]
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 enum YougetSrc {
@@ -56,6 +44,13 @@ impl Downloader for Youget {
             .arg(url)
             .output()?;
         let result = String::from_utf8(result.stdout.to_vec())?;
+        let fixed_re = regex::Regex::new(r"(?s).*?(\{.*\})").unwrap();
+        let result = fixed_re
+            .find(&result)
+            .ok_or_else(|| anyhow::anyhow!("Unknown format"))?
+            .as_str()
+            .to_owned();
+
         let result: YougetNode = serde_json::from_str(&result)?;
 
         let mut info_map = HashMap::new();
@@ -68,9 +63,9 @@ impl Downloader for Youget {
                 url: url.to_string(),
                 site: site.clone(),
                 title: title.clone(),
-                ext: stream_node.container.clone(),
+                ext: stream_node.container.clone().unwrap_or("Unknown".to_owned()),
                 stream_id: stream_id.clone(),
-                stream_name: stream_node.quality.clone(),
+                stream_name: stream_node.quality.clone().unwrap_or("Unknown".to_owned()),
                 stream_size: stream_node.size,
                 downloader: self.get_downloader_name(),
                 save_option: None,

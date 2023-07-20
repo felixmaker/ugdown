@@ -74,7 +74,8 @@ impl AddUrlDialog {
                                         add_url_dialog.btn_detect.activate()
                                     }
                                 }
-                                Err(_) => {
+                                Err(err) => {
+                                    println!("{}", err);
                                     add_url_dialog.set_status_bar_error("Failed to detect this url!");
                                     add_url_dialog.btn_detect.activate()
                                 },
@@ -103,8 +104,8 @@ impl AddUrlDialog {
                                 info.save_option = Some(SaveOption {
                                     output_dir: save_dir.clone(),
                                     file_name: format!(
-                                        "{}.{}.{}",
-                                        info.title, info.stream_name, info.ext
+                                        "{}[{}]",
+                                        info.title, info.stream_name
                                     ),
                                 });
                                 current_task.push(info);
