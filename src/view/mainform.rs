@@ -68,6 +68,36 @@ impl MainForm {
             }
         });
 
+        ui.menubar.set_callback({
+            let mut add_url_dialog = add_url_dialog.clone();
+            let mut task_table = task_table.clone();
+            move |c| match c.choice().unwrap_or("".to_owned()).as_str() {
+                "Add Url" => {
+                    if let Some(download_info_vec) = add_url_dialog.request_download_info() {
+                        task_table.add_tasks(&download_info_vec);
+                    }
+                }
+                "Exit" => app::quit(),
+                "README.md" => {
+                    let mut help = dialog::HelpDialog::default();
+                    help.set_text_size(18);
+                    let readme = include_str!("../../README.md");
+                    let mut result = Vec::new();
+                    for line in readme.lines() {
+                        if line.trim().len() > 0 {
+                            result.push(format!("<p>{}</p>", line));
+                        }
+                    }
+                    help.set_value(&result.join("\n"));
+                    help.show();
+                    while help.shown() {
+                        app::wait();
+                    }
+                }
+                _ => {}
+            }
+        });
+
         Self { ui, add_url_dialog }
     }
 }

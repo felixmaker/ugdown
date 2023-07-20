@@ -17,7 +17,7 @@ class UserInterface {open
           xywh {0 0 760 25}
         } {
           Submenu {} {
-            label Task
+            label Task open
             xywh {25 25 100 20}
           } {
             MenuItem {} {
@@ -25,42 +25,16 @@ class UserInterface {open
               xywh {30 30 100 20}
             }
             MenuItem {} {
-              label {Add Playlist}
-              xywh {25 25 100 20}
-            }
-            MenuItem {} {
               label Exit
               xywh {25 25 100 20}
             }
           }
           Submenu {} {
-            label Option
+            label Help open
             xywh {10 10 100 20}
           } {
             MenuItem {} {
-              label {Global Option}
-              xywh {15 15 100 20}
-            }
-          }
-          Submenu {} {
-            label Tools
-            xywh {0 0 100 20}
-          } {
-            MenuItem {} {
-              label {Tool A}
-              xywh {0 0 100 20}
-            }
-          }
-          Submenu {} {
-            label Help
-            xywh {10 10 100 20}
-          } {
-            MenuItem {} {
-              label Homepage
-              xywh {0 0 100 20}
-            }
-            MenuItem {} {
-              label About
+              label {README.md} selected
               xywh {0 0 100 20}
             }
           }
@@ -93,7 +67,7 @@ class UserInterface {open
           xywh {0 50 760 386}
         } {}
         Fl_Box label_status {
-          label {Hello! Have a nice day!} selected
+          label {Hello! Have a nice day!}
           xywh {0 436 760 24} box DOWN_FRAME align 20
         }
       }

@@ -146,6 +146,15 @@ impl AddUrlDialog {
             }
         });
 
+        ui.btn_reset.set_callback({
+            let mut add_url_dialog = ui.clone();
+            move |_| {
+                add_url_dialog.input_url.set_value("");
+                add_url_dialog.output_title.set_value("");
+                add_url_dialog.checkbrowser.clear();
+            }
+        });
+
         Self { current_select, ui }
     }
 

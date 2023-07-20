@@ -1,6 +1,6 @@
 mod utils;
 mod mainform;
-mod dialog;
+mod add_url_dialog;
 mod task_table;
 
 use fltk::{*, prelude::*};
@@ -20,5 +20,5 @@ trait StatusBar {
 }
 
 pub use task_table::TaskTable;
-pub use dialog::AddUrlDialog;
+pub use add_url_dialog::AddUrlDialog;
 pub use mainform::MainForm;
