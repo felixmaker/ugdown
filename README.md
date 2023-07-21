@@ -2,24 +2,23 @@
 
 Yet another gui for you-get, lux, youtube-dl and more! Use it to scrapes the web at ease!
 
-ToDo:
+![v0.2.0-beta](./screenshots/v0.2.0-beta.png)
 
- - [ ] more readable code
+The current beta release is `v0.2.0-beta`.
+
+## Todo List
+
  - [ ] playlist support
  - [ ] option(name, cookie...)
- - [ ] fix bug
- - [ ] i18n
+ - [ ] more readable code and fix bug
+ - [ ] i18n support
 
-This project is still under development. You can see the code in this repo now. The prebuilt release will be published as the most done!
-
-You can talk about your ideas in issues!
-
-Thank you!
+This project is still under development. You can see the development progress in this repo.
 
 ## Notice
 
- 1. ugdown is based in part on the work of the FLTK project (https://www.fltk.org).
- 2. you need to install you-get, lux or youtube-dl before using ugdown, see prerequirements below.
+ 1. Ugdown is based in part on the work of the FLTK project (https://www.fltk.org).
+ 2. You need to install you-get, lux or youtube-dl before using ugdown, see the prerequirements below.
 
 ## Prerequirements
 
