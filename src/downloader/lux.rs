@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
-    process::{Child, Stdio}, path::Path,
+    path::Path,
+    process::{Child, Stdio},
 };
 
 use anyhow::Result;
@@ -58,17 +59,16 @@ impl Downloader for Lux {
     fn get_stream_info(
         &self,
         url: &str,
-        cookie_file: Option<&Path>
+        cookie_file: Option<&Path>,
     ) -> Result<HashMap<String, DownloadInfo>> {
-
         let result = match &cookie_file {
-            Some(file) => std::process::Command::new("lux")
+            Some(file) => create_hide_window_command("lux")
                 .arg("-c")
                 .arg(file)
                 .arg("-j")
                 .arg(url)
                 .output()?,
-            None => std::process::Command::new("lux")
+            None => create_hide_window_command("lux")
                 .arg("-j")
                 .arg(url)
                 .output()?,
@@ -115,11 +115,10 @@ impl Downloader for Lux {
         id: &str,
         output_path: &str,
         output_name: &str,
-        cookie_file: Option<&Path>
+        cookie_file: Option<&Path>,
     ) -> anyhow::Result<Child> {
-        
         let child = match &cookie_file {
-            Some(cookie_file) => std::process::Command::new("lux")
+            Some(cookie_file) => create_hide_window_command("lux")
                 .arg("-c")
                 .arg(cookie_file)
                 .arg("-f")
@@ -133,7 +132,7 @@ impl Downloader for Lux {
                 .stdout(Stdio::null())
                 .stderr(Stdio::piped())
                 .spawn()?,
-            None => std::process::Command::new("lux")
+            None => create_hide_window_command("lux")
                 .arg("-f")
                 .arg(id)
                 .arg("-o")

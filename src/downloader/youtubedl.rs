@@ -81,7 +81,7 @@ impl Downloader for Youtubedl {
         cookie_file: Option<&Path>,
     ) -> Result<HashMap<String, DownloadInfo>> {
         let result = match &cookie_file {
-            Some(file) => std::process::Command::new("lux")
+            Some(file) => create_hide_window_command("lux")
                 .arg("-c")
                 .arg(file)
                 .arg("--socket-timeout")
@@ -89,7 +89,7 @@ impl Downloader for Youtubedl {
                 .arg("-j")
                 .arg(url)
                 .output()?,
-            None => std::process::Command::new("youtube-dl")
+            None => create_hide_window_command("youtube-dl")
                 .arg("--socket-timeout")
                 .arg("4")
                 .arg("-j")
@@ -150,7 +150,7 @@ impl Downloader for Youtubedl {
         let output = format!("{}/{}", output_dir, output_name);
 
         let child = match &cookie_file {
-            Some(cookie_file) => std::process::Command::new("youtube-dl")
+            Some(cookie_file) => create_hide_window_command("youtube-dl")
                 .arg("-c")
                 .arg(cookie_file)
                 .arg("-f")
@@ -162,7 +162,7 @@ impl Downloader for Youtubedl {
                 .stdout(Stdio::piped())
                 .stderr(Stdio::null())
                 .spawn()?,
-            None => std::process::Command::new("youtube-dl")
+            None => create_hide_window_command("youtube-dl")
                 .arg("-f")
                 .arg(id)
                 .arg("-o")

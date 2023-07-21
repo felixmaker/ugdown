@@ -45,13 +45,13 @@ impl Downloader for Youget {
         cookie_file: Option<&Path>,
     ) -> Result<HashMap<String, DownloadInfo>> {
         let result = match &cookie_file {
-            Some(file) => std::process::Command::new("lux")
+            Some(file) => create_hide_window_command("lux")
                 .arg("-c")
                 .arg(file)
                 .arg("--json")
                 .arg(url)
                 .output()?,
-            None => std::process::Command::new("lux")
+            None => create_hide_window_command("lux")
                 .arg("--json")
                 .arg(url)
                 .output()?,
@@ -103,7 +103,7 @@ impl Downloader for Youget {
         cookie_file: Option<&Path>,
     ) -> anyhow::Result<Child> {
         let child = match &cookie_file {
-            Some(cookie_file) => std::process::Command::new("you-get")
+            Some(cookie_file) => create_hide_window_command("you-get")
                 .arg("-c")
                 .arg(cookie_file)
                 .arg("--format")
@@ -117,7 +117,7 @@ impl Downloader for Youget {
                 .stdout(Stdio::piped())
                 .stderr(Stdio::null())
                 .spawn()?,
-            None => std::process::Command::new("you-get")
+            None => create_hide_window_command("you-get")
                 .arg("--format")
                 .arg(id)
                 .arg("-o")

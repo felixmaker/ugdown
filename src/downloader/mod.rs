@@ -1,4 +1,4 @@
-use std::{collections::HashMap, process::Child, path::{PathBuf, Path}};
+use std::{collections::HashMap, process::{Child, Command}, path::{PathBuf, Path}, ffi::OsStr};
 
 use anyhow::Result;
 
@@ -99,4 +99,15 @@ pub fn execute_download_info(download_info: &DownloadInfo) -> Result<(Child, Opt
         cookie_file,
         engine.is_stderr_output(),
     ))
+}
+
+pub fn create_hide_window_command<S: AsRef<OsStr>>(program: S) -> Command {
+    if cfg!(target_os = "windows") {
+        use std::os::windows::process::CommandExt;
+        let mut command = Command::new(program);
+        command.creation_flags(0x08000000);
+        command
+    } else {
+        Command::new(program)
+    }
 }
