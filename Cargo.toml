@@ -14,6 +14,7 @@ panic = "abort"
 
 [dependencies]
 anyhow = "1.0.71"
+directories = "5.0.1"
 fl2rust-macro = "0.5.15"
 fltk = "1.4.7"
 fltk-table = "0.3.0"

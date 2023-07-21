@@ -23,6 +23,13 @@ pub struct AddUrlDialog {
 impl AddUrlDialog {
     pub fn default() -> Self {
         let mut ui = add_url_dialog::UserInterface::make_window();
+
+        if let Some(user_dir) = directories::UserDirs::new() {
+            if let Some(download_dir) = user_dir.download_dir() {
+                ui.input_dir.set_value(&download_dir.to_string_lossy());
+            }
+        }
+
         let current_idx: Arc<Mutex<HashMap<i32, DownloadInfo>>> = Default::default();
         let current_select: Rc<RefCell<Option<Vec<DownloadInfo>>>> = Default::default();
 
