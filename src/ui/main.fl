@@ -34,8 +34,12 @@ class UserInterface {open
             xywh {10 10 100 20}
           } {
             MenuItem {} {
-              label {README.md} selected
+              label {README.md}
               xywh {0 0 100 20}
+            }
+            MenuItem {} {
+              label About selected
+              xywh {5 5 30 20}
             }
           }
         }

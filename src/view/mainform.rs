@@ -130,6 +130,13 @@ impl MainForm {
                         app::wait();
                     }
                 }
+                "About" => {
+                    dialog::message_title("About");
+                    dialog::message_default(&format!(
+                        "UgDown\nVersion: {}\n",
+                        env!("CARGO_PKG_VERSION")
+                    ));
+                }
                 _ => {}
             }
         });
