@@ -1,4 +1,9 @@
-use std::{collections::HashMap, process::{Child, Command}, path::{PathBuf, Path}, ffi::OsStr};
+use std::{
+    collections::HashMap,
+    ffi::OsStr,
+    path::{Path, PathBuf},
+    process::{Child, Command},
+};
 
 use anyhow::Result;
 
@@ -31,7 +36,7 @@ pub trait Downloader {
     fn get_stream_info(
         &self,
         url: &str,
-        cookie_file: Option<&Path>
+        cookie_file: Option<&Path>,
     ) -> Result<HashMap<String, DownloadInfo>>;
     fn execute_download(
         &self,
@@ -39,13 +44,12 @@ pub trait Downloader {
         id: &str,
         output_dir: &str,
         output_name: &str,
-        cookie_file: Option<&Path>
+        cookie_file: Option<&Path>,
     ) -> Result<Child>;
     fn is_stderr_output(&self) -> bool;
 }
 
-pub fn store_cookies(cookies: &str) -> Result<PathBuf>
-{
+pub fn store_cookies(cookies: &str) -> Result<PathBuf> {
     let cookie_id = uuid::Uuid::new_v4();
     let cookie_file = std::env::temp_dir().join(format!("cookie_{}.txt", cookie_id.to_string()));
     std::fs::write(&cookie_file, cookies)?;
@@ -71,12 +75,18 @@ pub fn get_engine(engine: &str) -> Result<Box<dyn Downloader>> {
     }
 }
 
-pub fn get_stream_info(engine: &str, url: &str, cookie_file: Option<&Path>) -> Result<HashMap<String, DownloadInfo>> {
+pub fn get_stream_info(
+    engine: &str,
+    url: &str,
+    cookie_file: Option<&Path>,
+) -> Result<HashMap<String, DownloadInfo>> {
     let engine = get_engine(engine)?;
     engine.get_stream_info(url, cookie_file)
 }
 
-pub fn execute_download_info(download_info: &DownloadInfo) -> Result<(Child, Option<PathBuf>, bool)> {
+pub fn execute_download_info(
+    download_info: &DownloadInfo,
+) -> Result<(Child, Option<PathBuf>, bool)> {
     let download_info = download_info.clone();
     let (output_dir, output_name) = download_info
         .save_option
@@ -87,8 +97,8 @@ pub fn execute_download_info(download_info: &DownloadInfo) -> Result<(Child, Opt
         ));
 
     let cookie_file = match download_info.cookies {
-        Some(cookies) => Some(store_cookies(&cookies)?) ,
-        None => None
+        Some(cookies) => Some(store_cookies(&cookies)?),
+        None => None,
     };
 
     let engine = get_engine(&download_info.downloader)?;
@@ -101,13 +111,15 @@ pub fn execute_download_info(download_info: &DownloadInfo) -> Result<(Child, Opt
     ))
 }
 
+#[cfg(target_os = "windows")]
 pub fn create_hide_window_command<S: AsRef<OsStr>>(program: S) -> Command {
-    if cfg!(target_os = "windows") {
-        use std::os::windows::process::CommandExt;
-        let mut command = Command::new(program);
-        command.creation_flags(0x08000000);
-        command
-    } else {
-        Command::new(program)
-    }
+    use std::os::windows::process::CommandExt;
+    let mut command = Command::new(program);
+    command.creation_flags(0x08000000);
+    command
+}
+
+#[cfg(not(target_os = "windows"))]
+pub fn create_hide_window_command<S: AsRef<OsStr>>(program: S) -> Command {
+    Command::new(program)
 }
