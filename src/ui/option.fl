@@ -6,9 +6,9 @@ class UserInterface {open
 } {
   Function {make_window()} {open
   } {
-    Fl_Window {} {
+    Fl_Window window {
       label Options open
-      xywh {56 271 550 400} type Double visible
+      xywh {339 202 550 400} type Double visible
     } {
       Fl_Flex {} {open
         xywh {0 0 550 400} margins {5 5 5 5} gap 5 set_size_tuples {1  1 35 }
@@ -17,29 +17,59 @@ class UserInterface {open
           xywh {5 5 540 350}
         } {
           Fl_Flex {} {
-            label General open selected
-            xywh {10 30 530 320} margins {5 5 5 5} gap 2 set_size_tuples {2  0 20  1 25 }
+            label General open
+            xywh {10 30 530 320} margins {120 5 5 5} gap 8 set_size_tuples {2  0 25  1 25 }
           } {
-            Fl_Box {} {
-              label {Language: }
-              xywh {15 35 520 20} align 20
+            Fl_Flex {} {open
+              xywh {130 35 405 25} type HORIZONTAL
+            } {
+              Fl_Input_Choice choice_language {
+                label {Language: } open
+                xywh {130 35 405 25}
+              } {}
             }
-            Fl_Input_Choice {} {open
-              xywh {15 57 520 25}
-            } {}
+            Fl_Flex {} {open
+              xywh {130 68 405 25} type HORIZONTAL gap 5 set_size_tuples {1  1 25 }
+            } {
+              Fl_File_Input input_dir {
+                label {Default ouput dir: }
+                xywh {130 68 375 25}
+              }
+              Fl_Button btn_select_dir {
+                label {@-2fileopen}
+                xywh {510 68 25 25}
+              }
+            }
+            Fl_Flex {} {
+              label {More Option: } open
+              xywh {130 101 405 244} align 7 gap 2 set_size_tuples {2  0 25  1 25 }
+            } {
+              Fl_Check_Button check_force_remove {
+                label {Force remove downloading task}
+                xywh {130 101 405 25} down_box DOWN_BOX value 1
+              }
+              Fl_Check_Button check_confirm_on_exit {
+                label {Show confirm dialog on exit}
+                xywh {130 128 405 25} down_box DOWN_BOX
+              }
+            }
           }
         }
         Fl_Flex {} {open
-          xywh {5 360 540 35} type HORIZONTAL margins {5 5 5 5} gap 5 set_size_tuples {2  1 75  2 75 }
+          xywh {5 360 540 35} type HORIZONTAL margins {5 5 5 5} gap 5 set_size_tuples {3  1 75  2 75  3 75 }
         } {
           Fl_Box {} {
-            xywh {10 365 370 25}
+            xywh {10 365 290 25}
           }
-          Fl_Button {} {
+          Fl_Button btn_submit {
+            label Submit selected
+            xywh {305 365 75 25}
+          }
+          Fl_Button btn_reset {
             label Reset
             xywh {385 365 75 25}
           }
-          Fl_Button {} {
+          Fl_Button btn_close {
             label Close
             xywh {465 365 75 25}
           }
