@@ -4,7 +4,7 @@ Yet another gui for you-get, lux, youtube-dl and more! Use it to scrapes the web
 
 ![v0.2.0-beta](./screenshots/v0.2.0-beta.png)
 
-The current beta release is `v0.2.0-beta`.
+The current beta release is `v0.2.x`.
 
 ## Todo List
 
