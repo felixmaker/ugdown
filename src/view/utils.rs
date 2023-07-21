@@ -1,5 +1,6 @@
 pub fn size_to_string(size: usize) -> String {
     match size {
+        0 => format!("Unknown"),
         gb if gb >= 1000 * 1000 * 1000 => format!("{:.2} GB", gb as f64 / 1000000000.0),
         mb if mb >= 1000 * 1000 => format!("{:.2} MB", mb as f64 / 1000000.0),
         kb if kb >= 1000 => format!("{:.2} KB", kb as f64 / 1000.0),
@@ -8,8 +9,10 @@ pub fn size_to_string(size: usize) -> String {
 }
 
 pub fn speed_to_string(size: usize) -> String {
-    let speed = size_to_string(size);
-    format!("{}/s", speed)
+    match size_to_string(size).as_str() {
+        "Unknown" => "---".to_owned(),
+        other => format!("{}/s", other),
+    }
 }
 
 pub fn percent_to_string(percent: f64) -> String {
