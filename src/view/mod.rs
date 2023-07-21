@@ -9,23 +9,26 @@ trait StatusBar {
     fn get_status_bar(&self) -> fltk::frame::Frame;
     fn set_status_bar_message(&self, text: &str) {
         let mut status_bar = self.get_status_bar();
-        status_bar.set_label_color(enums::Color::Gray0);
+        status_bar.set_label_color(enums::Color::Blue);
         status_bar.set_label("");
-        status_bar.set_label(text);
-        status_bar.redraw();
+        status_bar.set_label(&format!("[MESSAGE] {}", text));
+        status_bar.redraw_label();
+        app::redraw();
     }
     fn set_status_bar_success(&self, text: &str) {
         let mut status_bar = self.get_status_bar();
         status_bar.set_label_color(enums::Color::Green);
         status_bar.set_label("");
         status_bar.set_label(&format!("[SUCCESS] {}", text));
-        status_bar.redraw();
+        app::redraw();
     }
     fn set_status_bar_error(&self, text: &str) {
         let mut status_bar = self.get_status_bar();
         status_bar.set_label_color(enums::Color::Red);
         status_bar.set_label("");
         status_bar.set_label(&format!("[ERROR] {}", text));
+        status_bar.redraw_label();
+        app::redraw();
     }
 }
 

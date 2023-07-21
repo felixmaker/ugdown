@@ -76,13 +76,15 @@ impl TaskTable {
         self.update_rows()
     }
 
-    pub fn remove_tasks(&mut self, uuid_vec: &Vec<Uuid>) {
+    pub fn remove_tasks(&mut self, uuid_vec: &Vec<Uuid>) -> Result<()> {
         for uuid in uuid_vec {
-            let _ = self.task_queue.remove_task(*uuid);
+            self.task_queue.remove_task(*uuid)?;
         }
         self.table.clear();
         self.update_rows();
         self.table.unset_selection();
+
+        Ok(())
     }
 
     fn get_select_uuid(&self) -> Vec<Uuid> {
@@ -97,9 +99,11 @@ impl TaskTable {
         uuid_vec
     }
 
-    pub fn remove_select(&mut self) {
+    pub fn remove_select(&mut self) -> Result<usize> {
         let uuid_vec = self.get_select_uuid();
-        self.remove_tasks(&uuid_vec);
+        let length = uuid_vec.len();
+        self.remove_tasks(&uuid_vec)?;
+        Ok(length)
     }
 
     pub fn reload(&mut self) {
@@ -107,20 +111,25 @@ impl TaskTable {
         self.update_rows();
     }
 
-    pub fn start_select(&mut self) {
+    pub fn start_select(&mut self) -> Result<usize> {
         let uuid_vec = self.get_select_uuid();
+        let length = uuid_vec.len();
         for uuid in uuid_vec {
-            let _ = self.task_queue.start_task(uuid);
+            self.task_queue.start_task(uuid)?;
         }
         self.update_rows();
+
+        Ok(length)
     }
 
-    pub fn stop_select(&mut self) {
+    pub fn stop_select(&mut self) -> Result<usize> {
         let uuid_vec = self.get_select_uuid();
+        let length = uuid_vec.len();
         for uuid in uuid_vec {
-            let _ = self.task_queue.kill_task(uuid);
+            self.task_queue.kill_task(uuid)?;
         }
         self.update_rows();
+        Ok(length)
     }
 
     fn set_task_row(
@@ -244,7 +253,7 @@ impl TaskQueue {
                 match {
                     let mut task = task.lock().unwrap();
                     task.task_status = TaskStatus::Running;
-                    execute_download_info(&task.download_info)                    
+                    execute_download_info(&task.download_info)
                 } {
                     Ok((mut child, cookie_file, read_stderr)) => {
                         let mut reader: Box<dyn BufRead> = {
@@ -275,7 +284,8 @@ impl TaskQueue {
                                     if let Some(caps) = re.captures(result) {
                                         let progress = caps.name("progress").unwrap();
                                         let progress =
-                                            progress.as_str().parse::<f64>().unwrap_or(-1.0) / 100.0;
+                                            progress.as_str().parse::<f64>().unwrap_or(-1.0)
+                                                / 100.0;
 
                                         let now = Instant::now();
                                         let dur = now - before;
@@ -292,11 +302,11 @@ impl TaskQueue {
                         if let Some(cookie_file) = cookie_file {
                             let _ = std::fs::remove_file(cookie_file);
                         }
-                    },
+                    }
                     Err(error) => {
                         println!("{}", error)
                     }
-                } 
+                }
 
                 task.lock().unwrap().task_status = TaskStatus::Stopped;
             }

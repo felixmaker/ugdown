@@ -29,36 +29,70 @@ impl MainForm {
             move |_| {
                 if let Some(download_info_vec) = add_url_dialog.request_download_info() {
                     task_table.add_tasks(&download_info_vec);
-                    ui.set_status_bar_success(&format!("{}", download_info_vec.len()));
+                    let count = download_info_vec.len();
+                    if count > 0 {
+                        ui.set_status_bar_success(&format!(
+                            "{} task(s) added to task table!",
+                            count
+                        ));
+                    } else {
+                        ui.set_status_bar_error("No tasks are added to task table!");
+                    }
                 }
             }
         });
 
         ui.btn_stop.set_callback({
+            let ui = ui.clone();
             let mut task_table = task_table.clone();
             move |_| {
-                task_table.stop_select();
+                if let Ok(count) = task_table.stop_select() {
+                    if count > 0 {
+                        ui.set_status_bar_success(&format!(
+                            "The selected {} task(s) stopped.",
+                            count
+                        ));
+                    }
+                }
             }
         });
 
         ui.btn_delete.set_callback({
+            let ui = ui.clone();
             let mut task_table = task_table.clone();
             move |_| {
-                task_table.remove_select();
-            }
-        });
-
-        ui.btn_reload.set_callback({
-            let mut task_table = task_table.clone();
-            move |_| {
-                task_table.reload();
+                if let Ok(count) = task_table.remove_select() {
+                    if count > 0 {
+                        ui.set_status_bar_success(&format!(
+                            "The selected {} task(s) removed.",
+                            count
+                        ));
+                    }
+                }
             }
         });
 
         ui.btn_start.set_callback({
+            let ui = ui.clone();
             let mut task_table = task_table.clone();
             move |_| {
-                task_table.start_select();
+                if let Ok(count) = task_table.start_select() {
+                    if count > 0 {
+                        ui.set_status_bar_success(&format!(
+                            "The selected {} task(s) started.",
+                            count
+                        ));
+                    }
+                }
+            }
+        });
+
+        ui.btn_reload.set_callback({
+            let ui = ui.clone();
+            let mut task_table = task_table.clone();
+            move |_| {
+                task_table.reload();
+                ui.set_status_bar_message("Task table reloaded.");
             }
         });
 
@@ -100,7 +134,10 @@ impl MainForm {
             }
         });
 
-        Self { _ui: ui, _add_url_dialog: add_url_dialog }
+        Self {
+            _ui: ui,
+            _add_url_dialog: add_url_dialog,
+        }
     }
 }
 

@@ -59,11 +59,11 @@ impl AddUrlDialog {
                             move || {
                                 let cookie_file = {
                                     let current_cookies = current_cookies.lock().unwrap();
-                                    match current_cookies.clone() {                                        
+                                    match current_cookies.clone() {
                                         Some(c) => match store_cookies(&c) {
                                             Ok(path) => Some(path),
-                                            _ => None
-                                        }
+                                            _ => None,
+                                        },
                                         None => None,
                                     }
                                 };
@@ -145,8 +145,17 @@ impl AddUrlDialog {
                         }
                     }
 
+                    let length = current_task.len();
                     *current_select.borrow_mut() = Some(current_task);
-                    add_url_dialog.set_status_bar_success("Task add");
+
+                    if length > 0 {
+                        add_url_dialog.set_status_bar_success("Task add");
+                    }
+
+                    add_url_dialog.input_url.set_value("");
+                    add_url_dialog.output_title.set_value("");
+                    add_url_dialog.checkbrowser.clear();
+
                     add_url_dialog.window.hide();
                 } else {
                     add_url_dialog.set_status_bar_error("You need to set output dir!");
@@ -192,15 +201,17 @@ impl AddUrlDialog {
         });
 
         add_url_dialog.btn_set_cookie.set_callback({
-            // let mut add_url_dialog = add_url_dialog.clone();
+            let add_url_dialog = add_url_dialog.clone();
             let current_cookies = current_cookies.clone();
             move |_| {
                 let cookies = {
                     let cookies = current_cookies.lock().unwrap().clone();
                     cookies.unwrap_or("".to_string())
                 };
-                *current_cookies.lock().unwrap() =
-                    dialog::input_default("Input cookies below:", &cookies);
+                if let Some(cookies) = dialog::input_default("Input cookies below:", &cookies) {
+                    *current_cookies.lock().unwrap() = Some(cookies);
+                    add_url_dialog.set_status_bar_success("Cookie has changed!")
+                }
             }
         });
 
