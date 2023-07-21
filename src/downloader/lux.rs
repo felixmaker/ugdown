@@ -17,7 +17,7 @@ struct LuxNode {
     #[serde(rename = "type")]
     type_: String,
     streams: HashMap<String, LuxStreamsNode>,
-    caption: LuxCaption,
+    caption: Option<LuxCaption>,
     err: Option<String>,
 }
 
@@ -55,7 +55,7 @@ impl Downloader for Lux {
         "Lux".to_owned()
     }
 
-    fn get_stream_info(&self,url: &str) -> Result<HashMap<String, DownloadInfo>> {
+    fn get_stream_info(&self, url: &str) -> Result<HashMap<String, DownloadInfo>> {
         let result = std::process::Command::new("lux")
             .arg("-j")
             .arg(url)
@@ -78,7 +78,11 @@ impl Downloader for Lux {
                 url: url.to_string(),
                 site: site.clone(),
                 title: title.clone(),
-                ext: stream_node.ext.clone(),
+                ext: stream_node
+                    .parts
+                    .first()
+                    .and_then(|x| Some(x.ext.to_owned()))
+                    .unwrap_or(stream_node.ext.clone()),
                 stream_id: stream_id.clone(),
                 stream_name: stream_node.quality.clone(),
                 stream_size: stream_node.size,
@@ -92,7 +96,8 @@ impl Downloader for Lux {
         Ok(info_map)
     }
 
-    fn execute_download(&self,
+    fn execute_download(
+        &self,
         url: &str,
         id: &str,
         output_path: &str,
