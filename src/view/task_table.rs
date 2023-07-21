@@ -78,7 +78,7 @@ impl TaskTable {
 
     pub fn remove_tasks(&mut self, uuid_vec: &Vec<Uuid>) {
         for uuid in uuid_vec {
-            self.task_queue.remove_task(*uuid);
+            let _ = self.task_queue.remove_task(*uuid);
         }
         self.table.clear();
         self.update_rows();
@@ -110,7 +110,7 @@ impl TaskTable {
     pub fn start_select(&mut self) {
         let uuid_vec = self.get_select_uuid();
         for uuid in uuid_vec {
-            self.task_queue.start_task(uuid);
+            let _ = self.task_queue.start_task(uuid);
         }
         self.update_rows();
     }
@@ -118,7 +118,7 @@ impl TaskTable {
     pub fn stop_select(&mut self) {
         let uuid_vec = self.get_select_uuid();
         for uuid in uuid_vec {
-            self.task_queue.kill_task(uuid);
+            let _ = self.task_queue.kill_task(uuid);
         }
         self.update_rows();
     }
@@ -185,7 +185,7 @@ impl TaskStatus {
 }
 
 struct Task {
-    uuid: Uuid,
+    _uuid: Uuid,
     download_info: DownloadInfo,
     task_status: TaskStatus,
     task_killer: Option<Sender<bool>>,
@@ -224,7 +224,7 @@ struct TaskQueue {
 
 impl TaskQueue {
     fn start_task(&self, uuid: Uuid) -> Result<()> {
-        let mut task = self.get_task(uuid)?;
+        let task = self.get_task(uuid)?;
 
         if TaskStatus::Running == {
             let task = task.lock().unwrap();
@@ -241,53 +241,62 @@ impl TaskQueue {
 
         std::thread::spawn({
             move || {
-                if let Ok((mut child, read_stderr)) = {
+                match {
                     let mut task = task.lock().unwrap();
                     task.task_status = TaskStatus::Running;
-                    execute_download_info(&task.download_info)
+                    execute_download_info(&task.download_info)                    
                 } {
-                    let mut reader: Box<dyn BufRead> = {
-                        if read_stderr {
-                            Box::new(BufReader::new(child.stderr.take().unwrap()))
-                        } else {
-                            Box::new(BufReader::new(child.stdout.take().unwrap()))
-                        }
-                    };
-
-                    let mut buf = Vec::new();
-                    let mut before = Instant::now();
-                    let re: Regex = Regex::new(r"(?<progress>[0-9\.]*?)%").unwrap();
-                    while let Ok(length) = reader.read_until(b'%', &mut buf) {
-                        if let Ok(should_kill) = receiver.try_recv() {
-                            if should_kill {
-                                let _ = child.kill();
-                                let mut task = task.lock().unwrap();
-                                task.task_status = TaskStatus::Stopped;
-                                break;
+                    Ok((mut child, cookie_file, read_stderr)) => {
+                        let mut reader: Box<dyn BufRead> = {
+                            if read_stderr {
+                                Box::new(BufReader::new(child.stderr.take().unwrap()))
+                            } else {
+                                Box::new(BufReader::new(child.stdout.take().unwrap()))
                             }
-                        }
-                        match length {
-                            0 => break,
-                            _ => {
-                                let result = String::from_utf8_lossy(&buf);
-                                let result = result.trim();
-                                if let Some(caps) = re.captures(result) {
-                                    let progress = caps.name("progress").unwrap();
-                                    let progress =
-                                        progress.as_str().parse::<f64>().unwrap_or(-1.0) / 100.0;
+                        };
 
-                                    let now = Instant::now();
-                                    let dur = now - before;
-                                    before = now;
-
+                        let mut buf = Vec::new();
+                        let mut before = Instant::now();
+                        let re: Regex = Regex::new(r"(?<progress>[0-9\.]*?)%").unwrap();
+                        while let Ok(length) = reader.read_until(b'%', &mut buf) {
+                            if let Ok(should_kill) = receiver.try_recv() {
+                                if should_kill {
+                                    let _ = child.kill();
                                     let mut task = task.lock().unwrap();
-                                    task.task_info.update(progress, dur.as_secs_f64());
+                                    task.task_status = TaskStatus::Stopped;
+                                    break;
                                 }
-                                buf.clear();
+                            }
+                            match length {
+                                0 => break,
+                                _ => {
+                                    let result = String::from_utf8_lossy(&buf);
+                                    let result = result.trim();
+                                    if let Some(caps) = re.captures(result) {
+                                        let progress = caps.name("progress").unwrap();
+                                        let progress =
+                                            progress.as_str().parse::<f64>().unwrap_or(-1.0) / 100.0;
+
+                                        let now = Instant::now();
+                                        let dur = now - before;
+                                        before = now;
+
+                                        let mut task = task.lock().unwrap();
+                                        task.task_info.update(progress, dur.as_secs_f64());
+                                    }
+                                    buf.clear();
+                                }
                             }
                         }
+
+                        if let Some(cookie_file) = cookie_file {
+                            let _ = std::fs::remove_file(cookie_file);
+                        }
+                    },
+                    Err(error) => {
+                        println!("{}", error)
                     }
-                };
+                } 
 
                 task.lock().unwrap().task_status = TaskStatus::Stopped;
             }
@@ -311,7 +320,7 @@ impl TaskQueue {
         let uuid = Uuid::new_v4();
 
         let task = Task {
-            uuid,
+            _uuid: uuid,
             download_info: download_info.to_owned(),
             task_status: TaskStatus::Queued,
             task_killer: None,

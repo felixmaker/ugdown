@@ -1,4 +1,4 @@
-use std::{collections::HashMap, process::Child};
+use std::{collections::HashMap, process::Child, path::{PathBuf, Path}};
 
 use anyhow::Result;
 
@@ -6,7 +6,7 @@ mod lux;
 mod youget;
 mod youtubedl;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct DownloadInfo {
     pub url: String,
     pub site: String,
@@ -17,6 +17,7 @@ pub struct DownloadInfo {
     pub stream_size: usize,
     pub downloader: String,
     pub save_option: Option<SaveOption>,
+    pub cookies: Option<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -27,15 +28,28 @@ pub struct SaveOption {
 
 pub trait Downloader {
     fn get_downloader_name(&self) -> String;
-    fn get_stream_info(&self, url: &str) -> Result<HashMap<String, DownloadInfo>>;
+    fn get_stream_info(
+        &self,
+        url: &str,
+        cookie_file: Option<&Path>
+    ) -> Result<HashMap<String, DownloadInfo>>;
     fn execute_download(
         &self,
         url: &str,
         id: &str,
         output_dir: &str,
         output_name: &str,
+        cookie_file: Option<&Path>
     ) -> Result<Child>;
-    fn output_in_stderr(&self) -> bool;
+    fn is_stderr_output(&self) -> bool;
+}
+
+pub fn store_cookies(cookies: &str) -> Result<PathBuf>
+{
+    let cookie_id = uuid::Uuid::new_v4();
+    let cookie_file = std::env::temp_dir().join(format!("cookie_{}.txt", cookie_id.to_string()));
+    std::fs::write(&cookie_file, cookies)?;
+    Ok(cookie_file)
 }
 
 use lux::Lux;
@@ -57,12 +71,12 @@ pub fn get_engine(engine: &str) -> Result<Box<dyn Downloader>> {
     }
 }
 
-pub fn get_stream_info(engine: &str, url: &str) -> Result<HashMap<String, DownloadInfo>> {
+pub fn get_stream_info(engine: &str, url: &str, cookie_file: Option<&Path>) -> Result<HashMap<String, DownloadInfo>> {
     let engine = get_engine(engine)?;
-    engine.get_stream_info(url)
+    engine.get_stream_info(url, cookie_file)
 }
 
-pub fn execute_download_info(download_info: &DownloadInfo) -> Result<(Child, bool)> {
+pub fn execute_download_info(download_info: &DownloadInfo) -> Result<(Child, Option<PathBuf>, bool)> {
     let download_info = download_info.clone();
     let (output_dir, output_name) = download_info
         .save_option
@@ -72,12 +86,17 @@ pub fn execute_download_info(download_info: &DownloadInfo) -> Result<(Child, boo
             format!("{}.{}", download_info.title, download_info.ext),
         ));
 
+    let cookie_file = match download_info.cookies {
+        Some(cookies) => Some(store_cookies(&cookies)?) ,
+        None => None
+    };
+
     let engine = get_engine(&download_info.downloader)?;
     let url = download_info.url;
     let id = download_info.stream_id;
     Ok((
-        engine.execute_download(&url, &id, &output_dir, &output_name)?,
-        engine.output_in_stderr(),
+        engine.execute_download(&url, &id, &output_dir, &output_name, cookie_file.as_deref())?,
+        cookie_file,
+        engine.is_stderr_output(),
     ))
 }
-

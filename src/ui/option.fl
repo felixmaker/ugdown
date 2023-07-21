@@ -17,8 +17,8 @@ class UserInterface {open
           xywh {5 5 540 350}
         } {
           Fl_Flex {} {
-            label General open
-            xywh {10 30 530 320} margins {120 5 5 5} gap 8 set_size_tuples {2  0 25  1 25 }
+            label General
+            xywh {10 30 530 320} hide margins {120 5 5 5} gap 8 set_size_tuples {2  0 25  1 25 }
           } {
             Fl_Flex {} {open
               xywh {130 35 405 25} type HORIZONTAL
@@ -54,6 +54,10 @@ class UserInterface {open
               }
             }
           }
+          Fl_Flex {} {
+            label Cookies open selected
+            xywh {10 30 530 320}
+          } {}
         }
         Fl_Flex {} {open
           xywh {5 360 540 35} type HORIZONTAL margins {5 5 5 5} gap 5 set_size_tuples {3  1 75  2 75  3 75 }
@@ -62,7 +66,7 @@ class UserInterface {open
             xywh {10 365 290 25}
           }
           Fl_Button btn_submit {
-            label Submit selected
+            label Submit
             xywh {305 365 75 25}
           }
           Fl_Button btn_reset {

@@ -1,12 +1,13 @@
 use std::{
     collections::HashMap,
+    path::Path,
     process::{Child, Stdio},
 };
 
 use anyhow::Result;
 use serde::Deserialize;
 
-use super::{DownloadInfo, Downloader};
+use super::*;
 
 // #[allow(dead_code)]
 #[derive(Debug, Deserialize)]
@@ -74,13 +75,28 @@ impl Downloader for Youtubedl {
         "Youtube-dl".to_owned()
     }
 
-    fn get_stream_info(&self, url: &str) -> Result<HashMap<String, DownloadInfo>> {
-        let result = std::process::Command::new("youtube-dl")
-            .arg("--socket-timeout")
-            .arg("4")
-            .arg("-j")
-            .arg(url)
-            .output()?;
+    fn get_stream_info(
+        &self,
+        url: &str,
+        cookie_file: Option<&Path>,
+    ) -> Result<HashMap<String, DownloadInfo>> {
+        let result = match &cookie_file {
+            Some(file) => std::process::Command::new("lux")
+                .arg("-c")
+                .arg(file)
+                .arg("--socket-timeout")
+                .arg("4")
+                .arg("-j")
+                .arg(url)
+                .output()?,
+            None => std::process::Command::new("youtube-dl")
+                .arg("--socket-timeout")
+                .arg("4")
+                .arg("-j")
+                .arg(url)
+                .output()?,
+        };
+
         let result = String::from_utf8(result.stdout.to_vec())?;
         let result: YoutuledlNode = serde_json::from_str(&result)?;
 
@@ -100,13 +116,12 @@ impl Downloader for Youtubedl {
                     stream_name: format_node.format.clone(),
                     stream_size: format_node.filesize,
                     downloader: self.get_downloader_name(),
-                    save_option: None,
+                    ..Default::default()
                 };
-    
+
                 info_map.insert(format_node.format_id.clone(), info);
-            }    
-        }
-        else {
+            }
+        } else {
             let info = DownloadInfo {
                 url: url.to_string(),
                 site: site.clone(),
@@ -116,11 +131,11 @@ impl Downloader for Youtubedl {
                 stream_size: result.filesize.unwrap_or(0),
                 stream_name: result.format.clone(),
                 downloader: self.get_downloader_name(),
-                save_option: None,
+                ..Default::default()
             };
             info_map.insert(result.format_id.clone(), info);
         }
-        
+
         Ok(info_map)
     }
 
@@ -130,22 +145,39 @@ impl Downloader for Youtubedl {
         id: &str,
         output_dir: &str,
         output_name: &str,
+        cookie_file: Option<&Path>,
     ) -> anyhow::Result<Child> {
         let output = format!("{}/{}", output_dir, output_name);
-        let child = std::process::Command::new("youtube-dl")
-            .arg("-f")
-            .arg(id)
-            .arg("-o")
-            .arg(output)
-            .arg(url)
-            .stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::null())
-            .spawn()?;
+
+        let child = match &cookie_file {
+            Some(cookie_file) => std::process::Command::new("youtube-dl")
+                .arg("-c")
+                .arg(cookie_file)
+                .arg("-f")
+                .arg(id)
+                .arg("-o")
+                .arg(output)
+                .arg(url)
+                .stdin(Stdio::null())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn()?,
+            None => std::process::Command::new("youtube-dl")
+                .arg("-f")
+                .arg(id)
+                .arg("-o")
+                .arg(output)
+                .arg(url)
+                .stdin(Stdio::null())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn()?,
+        };
+
         Ok(child)
     }
 
-    fn output_in_stderr(&self) -> bool {
+    fn is_stderr_output(&self) -> bool {
         false
     }
 }

@@ -9,8 +9,8 @@ mod ui {
 }
 
 pub struct MainForm {
-    ui: ui::main::UserInterface,
-    add_url_dialog: AddUrlDialog,
+    _ui: ui::main::UserInterface,
+    _add_url_dialog: AddUrlDialog,
 }
 
 impl MainForm {
@@ -100,7 +100,7 @@ impl MainForm {
             }
         });
 
-        Self { ui, add_url_dialog }
+        Self { _ui: ui, _add_url_dialog: add_url_dialog }
     }
 }
 

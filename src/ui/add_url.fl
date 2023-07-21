@@ -8,16 +8,16 @@ class UserInterface {open
   } {
     Fl_Window window {
       label {Add Url} open
-      xywh {582 217 460 400} type Double hide resizable modal
+      xywh {406 173 460 400} type Double hide resizable modal
     } {
       Fl_Flex {} {open
         xywh {0 0 460 400} margins {0 10 0 0} gap 5 set_size_tuples {1  1 24 }
       } {
         Fl_Flex {} {open
-          xywh {0 10 460 361} margins {10 0 10 5} gap 6 set_size_tuples {2  0 86  2 25 }
+          xywh {0 10 460 361} margins {10 0 10 5} gap 6 set_size_tuples {2  0 91  2 25 }
         } {
           Fl_Flex {} {open
-            xywh {10 10 440 86} margins {100 0 0 0} gap 5 set_size_tuples {3  0 25  1 25  2 25 }
+            xywh {10 10 440 91} margins {100 0 0 0} gap 5 set_size_tuples {3  0 25  1 25  2 25 }
           } {
             Fl_Input input_url {
               label {Download Url: }
@@ -36,46 +36,50 @@ class UserInterface {open
               }
             }
             Fl_Flex {} {open
-              xywh {110 70 340 25} type HORIZONTAL gap 8 set_size_tuples {1  1 70 }
+              xywh {110 70 340 25} type HORIZONTAL gap 8 set_size_tuples {2  1 115  2 65 }
             } {
               Fl_Choice choice_engine {
-                label {By Engine:} open
-                xywh {110 70 262 25} down_box BORDER_BOX
+                label {By Engine: } open
+                xywh {110 70 144 25} down_box BORDER_BOX
               } {}
+              Fl_Button btn_set_cookie {
+                label {Manage Cookie} selected
+                xywh {262 70 115 25}
+              }
               Fl_Button btn_detect {
                 label Detect
-                xywh {380 70 70 25}
+                xywh {385 70 65 25}
               }
             }
           }
           Fl_Flex {} {open
-            xywh {10 102 440 233} gap 5 set_size_tuples {2  0 25  1 25 }
+            xywh {10 107 440 228} box UP_BOX margins {5 5 5 5} gap 5 set_size_tuples {2  0 25  1 25 }
           } {
             Fl_Flex {} {open
-              xywh {10 102 440 25} type HORIZONTAL set_size_tuples {1  0 35 }
+              xywh {17 114 426 25} type HORIZONTAL set_size_tuples {1  0 35 }
             } {
               Fl_Box {} {
                 label {Title: }
-                xywh {10 102 35 25} align 20
+                xywh {17 114 35 25} align 20
               }
               Fl_Output output_title {
-                xywh {45 102 405 25}
+                xywh {52 114 391 25}
               }
             }
             Fl_Flex {} {open
-              xywh {10 132 440 25} type HORIZONTAL set_size_tuples {1  1 80 }
+              xywh {17 144 426 25} type HORIZONTAL set_size_tuples {1  1 80 }
             } {
               Fl_Box {} {
                 label {Download Option: }
-                xywh {10 132 360 25} align 20
+                xywh {17 144 346 25} align 20
               }
               Fl_Check_Button check_all {
                 label {Select All}
-                xywh {370 132 80 25} down_box DOWN_BOX
+                xywh {363 144 80 25} down_box DOWN_BOX
               }
             }
             Fl_Check_Browser checkbrowser {
-              xywh {10 162 440 173}
+              xywh {17 174 426 154}
             }
           }
           Fl_Flex {} {open
@@ -95,7 +99,7 @@ class UserInterface {open
             }
           }
         }
-        Fl_Box label_status {selected
+        Fl_Box label_status {
           xywh {0 376 460 24} box DOWN_FRAME align 20
         }
       }

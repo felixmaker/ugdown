@@ -1,12 +1,13 @@
 use std::{
     collections::HashMap,
+    path::Path,
     process::{Child, Stdio},
 };
 
 use anyhow::Result;
 use serde::Deserialize;
 
-use super::{DownloadInfo, Downloader};
+use super::*;
 
 #[derive(Debug, Deserialize)]
 struct YougetNode {
@@ -38,11 +39,24 @@ impl Downloader for Youget {
         "Youget".to_owned()
     }
 
-    fn get_stream_info(&self, url: &str) -> Result<HashMap<String, DownloadInfo>> {
-        let result = std::process::Command::new("you-get")
-            .arg("--json")
-            .arg(url)
-            .output()?;
+    fn get_stream_info(
+        &self,
+        url: &str,
+        cookie_file: Option<&Path>,
+    ) -> Result<HashMap<String, DownloadInfo>> {
+        let result = match &cookie_file {
+            Some(file) => std::process::Command::new("lux")
+                .arg("-c")
+                .arg(file)
+                .arg("--json")
+                .arg(url)
+                .output()?,
+            None => std::process::Command::new("lux")
+                .arg("--json")
+                .arg(url)
+                .output()?,
+        };
+
         let result = String::from_utf8(result.stdout.to_vec())?;
         let fixed_re = regex::Regex::new(r"(?s).*?(\{.*\})").unwrap();
         let result = fixed_re
@@ -63,12 +77,15 @@ impl Downloader for Youget {
                 url: url.to_string(),
                 site: site.clone(),
                 title: title.clone(),
-                ext: stream_node.container.clone().unwrap_or("Unknown".to_owned()),
+                ext: stream_node
+                    .container
+                    .clone()
+                    .unwrap_or("Unknown".to_owned()),
                 stream_id: stream_id.clone(),
                 stream_name: stream_node.quality.clone().unwrap_or("Unknown".to_owned()),
                 stream_size: stream_node.size,
                 downloader: self.get_downloader_name(),
-                save_option: None,
+                ..Default::default()
             };
 
             info_map.insert(stream_id.clone(), info);
@@ -83,24 +100,41 @@ impl Downloader for Youget {
         id: &str,
         output_dir: &str,
         output_file: &str,
+        cookie_file: Option<&Path>,
     ) -> anyhow::Result<Child> {
-        let child = std::process::Command::new("you-get")
-            .arg("--format")
-            .arg(id)
-            .arg("-o")
-            .arg(output_dir)
-            .arg("-O")
-            .arg(output_file)
-            .arg(url)
-            .stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::null())
-            .spawn()?;
+        let child = match &cookie_file {
+            Some(cookie_file) => std::process::Command::new("you-get")
+                .arg("-c")
+                .arg(cookie_file)
+                .arg("--format")
+                .arg(id)
+                .arg("-o")
+                .arg(output_dir)
+                .arg("-O")
+                .arg(output_file)
+                .arg(url)
+                .stdin(Stdio::null())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn()?,
+            None => std::process::Command::new("you-get")
+                .arg("--format")
+                .arg(id)
+                .arg("-o")
+                .arg(output_dir)
+                .arg("-O")
+                .arg(output_file)
+                .arg(url)
+                .stdin(Stdio::null())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn()?,
+        };
 
         Ok(child)
     }
 
-    fn output_in_stderr(&self) -> bool {
+    fn is_stderr_output(&self) -> bool {
         false
     }
 }

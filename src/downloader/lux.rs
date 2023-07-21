@@ -1,12 +1,12 @@
 use std::{
     collections::HashMap,
-    process::{Child, Stdio},
+    process::{Child, Stdio}, path::Path,
 };
 
 use anyhow::Result;
 use serde::Deserialize;
 
-use super::{DownloadInfo, Downloader};
+use super::*;
 
 #[allow(dead_code)]
 #[derive(Debug, Deserialize)]
@@ -55,11 +55,24 @@ impl Downloader for Lux {
         "Lux".to_owned()
     }
 
-    fn get_stream_info(&self, url: &str) -> Result<HashMap<String, DownloadInfo>> {
-        let result = std::process::Command::new("lux")
-            .arg("-j")
-            .arg(url)
-            .output()?;
+    fn get_stream_info(
+        &self,
+        url: &str,
+        cookie_file: Option<&Path>
+    ) -> Result<HashMap<String, DownloadInfo>> {
+
+        let result = match &cookie_file {
+            Some(file) => std::process::Command::new("lux")
+                .arg("-c")
+                .arg(file)
+                .arg("-j")
+                .arg(url)
+                .output()?,
+            None => std::process::Command::new("lux")
+                .arg("-j")
+                .arg(url)
+                .output()?,
+        };
 
         let result = String::from_utf8(result.stdout.to_vec())?;
         let result: Vec<LuxNode> = serde_json::from_str(&result)?;
@@ -87,7 +100,7 @@ impl Downloader for Lux {
                 stream_name: stream_node.quality.clone(),
                 stream_size: stream_node.size,
                 downloader: self.get_downloader_name(),
-                save_option: None,
+                ..Default::default()
             };
 
             info_map.insert(stream_id.clone(), info);
@@ -102,24 +115,42 @@ impl Downloader for Lux {
         id: &str,
         output_path: &str,
         output_name: &str,
+        cookie_file: Option<&Path>
     ) -> anyhow::Result<Child> {
-        let child = std::process::Command::new("lux")
-            .arg("-f")
-            .arg(id)
-            .arg("-o")
-            .arg(output_path)
-            .arg("-O")
-            .arg(output_name)
-            .arg(url)
-            .stdin(Stdio::null())
-            .stdout(Stdio::null())
-            .stderr(Stdio::piped())
-            .spawn()?;
+        
+        let child = match &cookie_file {
+            Some(cookie_file) => std::process::Command::new("lux")
+                .arg("-c")
+                .arg(cookie_file)
+                .arg("-f")
+                .arg(id)
+                .arg("-o")
+                .arg(output_path)
+                .arg("-O")
+                .arg(output_name)
+                .arg(url)
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::piped())
+                .spawn()?,
+            None => std::process::Command::new("lux")
+                .arg("-f")
+                .arg(id)
+                .arg("-o")
+                .arg(output_path)
+                .arg("-O")
+                .arg(output_name)
+                .arg(url)
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::piped())
+                .spawn()?,
+        };
 
         Ok(child)
     }
 
-    fn output_in_stderr(&self) -> bool {
+    fn is_stderr_output(&self) -> bool {
         true
     }
 }
