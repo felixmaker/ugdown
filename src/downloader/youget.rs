@@ -5,31 +5,15 @@ use std::{
 };
 
 use anyhow::Result;
-use serde::Deserialize;
 
 use super::*;
 
-#[derive(Debug, Deserialize)]
-struct YougetNode {
-    title: String,
-    site: String,
-    streams: HashMap<String, YougetStreamsNode>,
-}
-
-#[derive(Debug, Deserialize)]
+#[derive(Debug)]
 struct YougetStreamsNode {
-    container: Option<String>,
-    quality: Option<String>,
+    format: String,
+    container: String,
+    quality: String,
     size: usize,
-    // src: Vec<YougetSrc>,
-}
-
-#[allow(unused)]
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-enum YougetSrc {
-    Multi(Vec<String>),
-    Single(String),
 }
 
 pub struct Youget {}
@@ -48,47 +32,84 @@ impl Downloader for Youget {
             Some(file) => create_hide_window_command("you-get")
                 .arg("-c")
                 .arg(file)
-                .arg("--json")
+                .arg("-i")
                 .arg(url)
                 .output()?,
             None => create_hide_window_command("you-get")
-                .arg("--json")
+                .arg("-i")
                 .arg(url)
                 .output()?,
         };
 
         let result = String::from_utf8(result.stdout.to_vec())?;
-        let fixed_re = regex::Regex::new(r"(?s).*?(\{.*\})").unwrap();
-        let result = fixed_re
-            .find(&result)
-            .ok_or_else(|| anyhow::anyhow!("Unknown format"))?
-            .as_str()
-            .to_owned();
 
-        let result: YougetNode = serde_json::from_str(&result)?;
+        let mut site: Option<String> = None;
+        let mut title: Option<String> = None;
+        let mut streams: Vec<YougetStreamsNode> = Default::default();
+
+        let mut format: Option<String> = None;
+        let mut container: Option<String> = None;
+        let mut quality: Option<String> = None;
+        let mut size: Option<usize> = None;
+
+        let re_size = regex::Regex::new(r"\(([0-9]*) bytes\)").unwrap();
+
+        for line in result.lines() {
+            match line.trim() {
+                lsite if lsite.starts_with("site:") => site = Some(lsite[5..].trim().to_string()),
+                ltitle if ltitle.starts_with("title:") => {
+                    title = Some(ltitle[6..].trim().to_string())
+                }
+                lformat if lformat.starts_with("- format:") => {
+                    format = Some(lformat[9..].trim().to_string())
+                }
+                lcontainer if lcontainer.starts_with("container:") => {
+                    container = Some(lcontainer[10..].trim().to_string())
+                }
+                lquality if lquality.starts_with("quality:") => {
+                    quality = Some(lquality[8..].trim().to_string())
+                }
+                lsize if lsize.starts_with("size:") => {
+                    let lsize = lsize[5..].trim();
+                    if let Some(size_found) = re_size.captures(lsize) {
+                        let size_found: usize = size_found
+                            .get(1)
+                            .map(|x| x.as_str().parse::<usize>().unwrap_or(0))
+                            .unwrap_or(0);
+                        size = Some(size_found);
+                    }
+                }
+                lformat_end if lformat_end.starts_with("# download-with") => {
+                    streams.push(YougetStreamsNode {
+                        format: format.take().unwrap_or("__dafault__".to_string()),
+                        container: container.take().unwrap_or("Unknown".to_owned()),
+                        quality: quality.take().unwrap_or("Unknown".to_owned()),
+                        size: size.take().unwrap_or(0),
+                    })
+                }
+                _ => {}
+            }
+        }
 
         let mut info_map = HashMap::new();
 
-        let site = &result.site;
-        let title = &result.title;
+        let site = site.unwrap_or("Unknown".to_owned());
+        let title = title.unwrap_or("Unknown".to_owned());
 
-        for (stream_id, stream_node) in &result.streams {
+        for stream_node in streams {
             let info = DownloadInfo {
                 url: url.to_string(),
                 site: site.clone(),
                 title: title.clone(),
-                ext: stream_node
-                    .container
-                    .clone()
-                    .unwrap_or("Unknown".to_owned()),
-                stream_id: stream_id.clone(),
-                stream_name: stream_node.quality.clone().unwrap_or("Unknown".to_owned()),
+                ext: stream_node.container.clone(),
+                stream_id: stream_node.format.clone(),
+                stream_name: stream_node.quality.clone(),
                 stream_size: stream_node.size,
                 downloader: self.get_downloader_name(),
                 ..Default::default()
             };
 
-            info_map.insert(stream_id.clone(), info);
+            info_map.insert(stream_node.format.clone(), info);
         }
 
         Ok(info_map)
