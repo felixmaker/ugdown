@@ -45,20 +45,29 @@ impl Downloader for Youget {
 
         let mut site: Option<String> = None;
         let mut title: Option<String> = None;
-        let mut streams: Vec<YougetStreamsNode> = Default::default();
+        let mut tp: Option<String> = None;
 
+        let mut streams: Vec<YougetStreamsNode> = Default::default();
         let mut format: Option<String> = None;
         let mut container: Option<String> = None;
         let mut quality: Option<String> = None;
         let mut size: Option<usize> = None;
 
         let re_size = regex::Regex::new(r"\(([0-9]*) bytes\)").unwrap();
+        let re_type = regex::Regex::new(r"\((.*?)\)").unwrap();
 
         for line in result.lines() {
-            match line.trim() {
+            match line.to_ascii_lowercase().trim() {
                 lsite if lsite.starts_with("site:") => site = Some(lsite[5..].trim().to_string()),
                 ltitle if ltitle.starts_with("title:") => {
                     title = Some(ltitle[6..].trim().to_string())
+                }
+                ltype if ltype.starts_with("type:") => {
+                    if let Some(type_found) = re_type.captures(ltype) {
+                        if let Some(type_found) = type_found.get(1) {
+                            tp = Some(get_extension_from_type(type_found.as_str()))
+                        }
+                    }
                 }
                 lformat if lformat.starts_with("- format:") => {
                     format = Some(lformat[9..].trim().to_string())
@@ -70,7 +79,6 @@ impl Downloader for Youget {
                     quality = Some(lquality[8..].trim().to_string())
                 }
                 lsize if lsize.starts_with("size:") => {
-                    let lsize = lsize[5..].trim();
                     if let Some(size_found) = re_size.captures(lsize) {
                         let size_found: usize = size_found
                             .get(1)
@@ -96,20 +104,38 @@ impl Downloader for Youget {
         let site = site.unwrap_or("Unknown".to_owned());
         let title = title.unwrap_or("Unknown".to_owned());
 
-        for stream_node in streams {
-            let info = DownloadInfo {
-                url: url.to_string(),
-                site: site.clone(),
-                title: title.clone(),
-                ext: stream_node.container.clone(),
-                stream_id: stream_node.format.clone(),
-                stream_name: stream_node.quality.clone(),
-                stream_size: stream_node.size,
-                downloader: self.get_downloader_name(),
-                ..Default::default()
-            };
+        if streams.len() > 0 {
+            for stream_node in streams {
+                let info = DownloadInfo {
+                    url: url.to_string(),
+                    site: site.clone(),
+                    title: title.clone(),
+                    ext: stream_node.container.clone(),
+                    stream_id: stream_node.format.clone(),
+                    stream_name: stream_node.quality.clone(),
+                    stream_size: stream_node.size,
+                    downloader: self.get_downloader_name(),
+                    ..Default::default()
+                };
 
-            info_map.insert(stream_node.format.clone(), info);
+                info_map.insert(stream_node.format.clone(), info);
+            }
+        } else {
+            if let Some(tp) = tp {
+                let info = DownloadInfo {
+                    url: url.to_string(),
+                    site: site.clone(),
+                    title: title.clone(),
+                    ext: tp.clone(),
+                    stream_id: "__default__".to_owned(),
+                    stream_name: "Unknown".to_owned(),
+                    stream_size: size.take().unwrap_or(0),
+                    downloader: self.get_downloader_name(),
+                    ..Default::default()
+                };
+
+                info_map.insert("__default__".to_owned(), info);
+            }
         }
 
         Ok(info_map)
@@ -157,5 +183,29 @@ impl Downloader for Youget {
 
     fn is_stderr_output(&self) -> bool {
         false
+    }
+}
+
+// See https://github.com/soimort/you-get/blob/f9cbdc2656bcca7edabd90fa75b501dc7b52be32/src/you_get/common.py#L604
+fn get_extension_from_type(tp: &str) -> String {
+    match tp.trim() {
+        "video/3gpp" => "3gp".to_string(),
+        "video/f4v" => "flv".to_string(),
+        "video/mp4" => "mp4".to_string(),
+        "video/MP2T" => "ts".to_string(),
+        "video/quicktime" => "mov".to_string(),
+        "video/webm" => "webm".to_string(),
+        "video/x-flv" => "flv".to_string(),
+        "video/x-ms-asf" => "asf".to_string(),
+        "audio/mp4" => "mp4".to_string(),
+        "audio/mpeg" => "mp3".to_string(),
+        "audio/wav" => "wav".to_string(),
+        "audio/x-wav" => "wav".to_string(),
+        "audio/wave" => "wav".to_string(),
+        "image/jpeg" => "jpg".to_string(),
+        "image/png" => "png".to_string(),
+        "image/gif" => "gif".to_string(),
+        "application/pdf" => "pdf".to_string(),
+        _ => "Unknown".to_string(),
     }
 }
