@@ -109,6 +109,7 @@ impl TaskTable {
     pub fn reload(&mut self) {
         self.table.clear();
         self.update_rows();
+        self.table.unset_selection();
     }
 
     pub fn start_select(&mut self) -> Result<usize> {
@@ -118,7 +119,7 @@ impl TaskTable {
             self.task_queue.start_task(uuid)?;
         }
         self.update_rows();
-
+        self.table.unset_selection();
         Ok(length)
     }
 
@@ -129,6 +130,7 @@ impl TaskTable {
             self.task_queue.kill_task(uuid)?;
         }
         self.update_rows();
+        self.table.unset_selection();
         Ok(length)
     }
 
@@ -217,10 +219,16 @@ impl TaskInfo {
     }
 
     pub fn update(&mut self, progress: f64, dur: f64) {
-        if progress > self.progress {
-            self.speed = (progress - self.progress) / dur;
-            self.eta = ((1.0 - progress) / self.speed) as usize;
-            self.progress = progress;
+        if progress == 1.0 {
+            self.speed = 0.0;
+            self.eta = 0;
+            self.progress = 1.0;
+        } else {
+            if progress > self.progress {
+                self.speed = (progress - self.progress) / dur;
+                self.eta = ((1.0 - progress) / self.speed) as usize;
+                self.progress = progress;
+            }
         }
     }
 }
