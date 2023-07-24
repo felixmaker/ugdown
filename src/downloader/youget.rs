@@ -45,13 +45,13 @@ impl Downloader for Youget {
         cookie_file: Option<&Path>,
     ) -> Result<HashMap<String, DownloadInfo>> {
         let result = match &cookie_file {
-            Some(file) => create_hide_window_command("lux")
+            Some(file) => create_hide_window_command("you-get")
                 .arg("-c")
                 .arg(file)
                 .arg("--json")
                 .arg(url)
                 .output()?,
-            None => create_hide_window_command("lux")
+            None => create_hide_window_command("you-get")
                 .arg("--json")
                 .arg(url)
                 .output()?,

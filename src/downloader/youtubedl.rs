@@ -81,7 +81,7 @@ impl Downloader for Youtubedl {
         cookie_file: Option<&Path>,
     ) -> Result<HashMap<String, DownloadInfo>> {
         let result = match &cookie_file {
-            Some(file) => create_hide_window_command("lux")
+            Some(file) => create_hide_window_command("youtube-dl")
                 .arg("-c")
                 .arg(file)
                 .arg("--socket-timeout")
