@@ -38,7 +38,7 @@ class UserInterface {open
               xywh {0 0 100 20}
             }
             MenuItem {} {
-              label About selected
+              label About
               xywh {5 5 30 20}
             }
           }
@@ -70,9 +70,8 @@ class UserInterface {open
         Fl_Group table_parent {
           xywh {0 50 760 386}
         } {}
-        Fl_Box label_status {
-          label {Hello! Have a nice day!}
-          xywh {0 436 760 24} box DOWN_FRAME align 20
+        Fl_Output output_status {selected
+          xywh {0 436 760 24} box DOWN_FRAME
         }
       }
     }

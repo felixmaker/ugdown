@@ -231,7 +231,7 @@ impl AddUrlDialog {
 }
 
 impl StatusBar for add_url_dialog::UserInterface {
-    fn get_status_bar(&self) -> fltk::frame::Frame {
-        self.label_status.clone()
+    fn get_status_bar(&self) -> output::Output {
+        self.output_status.clone()
     }
 }
