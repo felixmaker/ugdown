@@ -114,6 +114,7 @@ pub fn execute_download_info(
 #[cfg(target_os = "windows")]
 pub fn create_hide_window_command<S: AsRef<OsStr>>(program: S) -> Command {
     use std::os::windows::process::CommandExt;
+    let program = get_exe_path(program);
     let mut command = Command::new(program);
     command.creation_flags(0x08000000);
     command
@@ -121,5 +122,19 @@ pub fn create_hide_window_command<S: AsRef<OsStr>>(program: S) -> Command {
 
 #[cfg(not(target_os = "windows"))]
 pub fn create_hide_window_command<S: AsRef<OsStr>>(program: S) -> Command {
+    let program = get_exe_path(program);
     Command::new(program)
+}
+
+fn get_exe_path<S: AsRef<OsStr>>(program: S) -> PathBuf {
+    if let Ok(current_exe) = std::env::current_exe() {
+        if let Some(parent) = current_exe.parent() {
+            let program = parent.join("plugins").join(program.as_ref());
+            if let Ok(program) = which::which(program) {
+                return program;
+            }
+        }
+    }
+
+    program.as_ref().into()
 }
