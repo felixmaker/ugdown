@@ -12,19 +12,16 @@ trait StatusBar {
         let mut status_bar = self.get_status_bar();
         status_bar.set_text_color(enums::Color::Blue);
         status_bar.set_value(&format!("[MESSAGE] {}", text));
-        app::redraw();
     }
     fn set_status_bar_success(&self, text: &str) {
         let mut status_bar = self.get_status_bar();
         status_bar.set_text_color(enums::Color::Green);
         status_bar.set_value(&format!("[SUCCESS] {}", text));
-        app::redraw();
     }
     fn set_status_bar_error(&self, text: &str) {
         let mut status_bar = self.get_status_bar();
         status_bar.set_text_color(enums::Color::Red);
         status_bar.set_value(&format!("[ERROR] {}", text));
-        app::redraw();
     }
 }
 

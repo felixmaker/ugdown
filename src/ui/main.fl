@@ -67,11 +67,11 @@ class UserInterface {open
             xywh {100 25 25 25}
           }
         }
-        Fl_Group table_parent {
-          xywh {0 50 760 386}
+        Fl_Group table_parent {selected
+          xywh {0 50 760 386} color 7
         } {}
-        Fl_Output output_status {selected
-          xywh {0 436 760 24} box DOWN_FRAME
+        Fl_Output output_status {
+          xywh {0 436 760 24} box BORDER_BOX color 51
         }
       }
     }
