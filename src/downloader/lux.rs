@@ -152,4 +152,17 @@ impl Downloader for Lux {
     fn is_stderr_output(&self) -> bool {
         true
     }
+
+    fn get_program(&self) -> Result<(PathBuf, String)> {
+        let mut command = create_hide_window_command("lux");
+        let program = which::which(command.get_program())?;
+        let result = command.arg("--version").output()?;
+        let result = String::from_utf8(result.stdout.to_vec())?;
+        let re = regex::Regex::new(r"([0-9]+\.[0-9]+\.[0-9]+)").unwrap();
+        let version = re
+            .find(&result)
+            .map(|x| x.as_str().to_string())
+            .unwrap_or("Unknown".to_owned());
+        Ok((program, version))
+    }
 }

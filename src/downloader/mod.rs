@@ -47,6 +47,7 @@ pub trait Downloader {
         cookie_file: Option<&Path>,
     ) -> Result<Child>;
     fn is_stderr_output(&self) -> bool;
+    fn get_program(&self) -> Result<(PathBuf, String)>;
 }
 
 pub fn store_cookies(cookies: &str) -> Result<PathBuf> {
@@ -126,15 +127,22 @@ pub fn create_hide_window_command<S: AsRef<OsStr>>(program: S) -> Command {
     Command::new(program)
 }
 
-fn get_exe_path<S: AsRef<OsStr>>(program: S) -> PathBuf {
-    if let Ok(current_exe) = std::env::current_exe() {
-        if let Some(parent) = current_exe.parent() {
-            let program = parent.join("plugins").join(program.as_ref());
-            if let Ok(program) = which::which(program) {
-                return program;
-            }
+pub fn get_exe_path<S: AsRef<OsStr>>(program: S) -> PathBuf {
+    let mut program: PathBuf = program.as_ref().into();
+
+    if let Some(plugin_dir) = get_plugin_dir() {
+        let plugin = plugin_dir.join(&program);
+        if plugin.is_file() {
+            program = plugin
         }
     }
 
-    program.as_ref().into()
+    program
+}
+
+pub fn get_plugin_dir() -> Option<PathBuf> {
+    std::env::current_exe()
+        .ok()
+        .and_then(|x| x.parent().map(|p| p.to_owned()))
+        .map(|x| x.join("plugins"))
 }

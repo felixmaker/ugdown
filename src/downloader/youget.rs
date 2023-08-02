@@ -184,6 +184,25 @@ impl Downloader for Youget {
     fn is_stderr_output(&self) -> bool {
         false
     }
+
+    fn get_program(&self) -> Result<(PathBuf, String)> {
+        let mut command = create_hide_window_command("you-get");
+        let program = which::which(command.get_program())?;
+        let mut child = command
+            .arg("-V")
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
+        let child = child.stderr.take().unwrap();
+        let result = std::io::read_to_string(child)?;
+        let re = regex::Regex::new(r"([0-9]+\.[0-9]+\.[0-9]+)").unwrap();
+        let version = re
+            .find(&result)
+            .map(|x| x.as_str().to_string())
+            .unwrap_or("Unknown".to_owned());
+        Ok((program, version))
+    }
 }
 
 // See https://github.com/soimort/you-get/blob/f9cbdc2656bcca7edabd90fa75b501dc7b52be32/src/you_get/common.py#L604
