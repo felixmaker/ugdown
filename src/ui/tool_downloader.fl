@@ -7,7 +7,7 @@ class UserInterface {open
   Function {make_window()} {open
   } {
     Fl_Window window {open selected
-      xywh {325 214 454 106} type Double color 51 Hide
+      xywh {325 214 454 106} type Double color 51 modal Hide
     } {
       Fl_Progress progress {
         xywh {20 39 410 25}

@@ -138,6 +138,10 @@ impl ToolDownloader {
 
             Ok(())
         });
+
+        while self.downloader.window.shown() {
+            fltk::app::wait();
+        }
         Ok(())
     }
 }

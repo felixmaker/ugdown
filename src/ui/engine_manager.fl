@@ -8,7 +8,7 @@ class UserInterface {open
   } {
     Fl_Window window {
       label {Engine Manager} open
-      xywh {371 209 413 254} type Double visible
+      xywh {371 209 413 254} type Double hide
     } {
       Fl_Button btn_detect {
         label Detect
@@ -27,7 +27,7 @@ class UserInterface {open
         xywh {15 215 120 25}
       }
       Fl_Button btn_download_extra {
-        label {Download select in plugins (Windows)}
+        label {Download to plugins (Windows)} selected
         xywh {145 215 250 25}
       }
       Fl_Choice choice_engine {
@@ -47,7 +47,7 @@ class UserInterface {open
         xywh {350 152 45 23}
       }
       Fl_Choice choice_mirror {
-        label {Download from Github Mirror: } open selected
+        label {Download from Github Mirror: } open
         xywh {205 180 190 25} down_box BORDER_BOX
       } {}
     }

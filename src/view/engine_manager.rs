@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    ffi::OsStr,
     sync::{Arc, Mutex},
 };
 
@@ -7,7 +8,9 @@ use anyhow::Result;
 use fltk::{prelude::*, *};
 use url::Url;
 
-use crate::downloader::{get_engine, get_engine_names, get_plugin_dir};
+use crate::downloader::{
+    create_hide_window_command, get_engine, get_engine_names, get_exe_path, get_plugin_dir,
+};
 
 use super::tool_downloader::ToolDownloader;
 
@@ -17,6 +20,8 @@ mod ui {
 
 pub struct EngineManager {
     engine_manager: ui::UserInterface,
+    current_download_asset: Arc<Mutex<Option<HashMap<String, String>>>>,
+    tool_downloader: ToolDownloader,
 }
 
 impl EngineManager {
@@ -147,12 +152,84 @@ impl EngineManager {
             }
         });
 
-        Self { engine_manager }
+        let mut result = Self {
+            engine_manager,
+            current_download_asset,
+            tool_downloader,
+        };
+
+        result.set_window_only_callback();
+
+        result
     }
 
     pub fn show(&mut self) {
         self.engine_manager.window.show();
     }
+
+    #[cfg(target_os = "windows")]
+    pub fn set_window_only_callback(&mut self) {
+        self.engine_manager.btn_download_extra.set_callback({
+            let choice_assets = self.engine_manager.choice_assets.clone();
+            let choice_mirror = self.engine_manager.choice_mirror.clone();
+            let current_download_asset = self.current_download_asset.clone();
+            let mut tool_downloader = self.tool_downloader.clone();
+            move |_| {
+                if let Some(engine) = choice_assets.choice() {
+                    if let Some(current_download_asset) = &*current_download_asset.lock().unwrap() {
+                        if let Some(url) = current_download_asset.get(&engine) {
+                            if let Ok(result) = Url::parse(url) {
+                                let filename = result
+                                    .path_segments()
+                                    .and_then(|x| x.last())
+                                    .unwrap_or("")
+                                    .to_string();
+
+                                let output_path = std::env::temp_dir().join(&filename);
+                                let mut url = url.clone();
+                                if let Some(choice_mirror) = choice_mirror.choice() {
+                                    url = replace_github_download(&url, &choice_mirror);
+                                }
+                                let title = format!("Downloading {}...", filename);
+                                if let Err(err) = tool_downloader.start_download(
+                                    &url,
+                                    &output_path.to_string_lossy(),
+                                    &title,
+                                    &title,
+                                ) {
+                                    dialog::alert_default(err.to_string().as_str());
+                                    return;
+                                }
+
+                                let sz_path = get_exe_path("7z");
+                                if sz_path.is_file() == false {
+                                    if let Some(plugin_dir) = get_plugin_dir() {
+                                        tool_downloader.start_download(
+                                            "https://www.7-zip.org/a/7zr.exe",
+                                            &plugin_dir.join("7z.exe").to_string_lossy(),
+                                            "Downloading 7z...",
+                                            "Downloading 7z...",
+                                        );
+                                    }
+                                }
+
+                                if output_path.to_string_lossy().ends_with(".zip") {
+                                    extract_file_by_7z(filename);
+                                }
+
+                                if output_path.to_string_lossy().ends_with(".exe") {
+                                    std::fs::copy(output_path, get_plugin_dir().unwrap());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    pub fn set_window_only_callback(&self) {}
 }
 
 fn get_github_latest(owner: &str, repo: &str) -> Result<serde_json::Value> {
@@ -173,7 +250,7 @@ impl GithubLatestRelease {
     fn get_from_github_api(engine_name: &str) -> Option<Self> {
         match engine_name.to_lowercase().trim() {
             "lux" => get_lux().ok(),
-            "youtube-dl" => get_youtube_dl().ok(),
+            "youtube-dl" => get_youtubedl().ok(),
             "you-get" => get_youget().ok(),
             _ => None,
         }
@@ -251,7 +328,38 @@ fn get_lux() -> Result<GithubLatestRelease> {
     Ok(result)
 }
 
-fn get_youtube_dl() -> Result<GithubLatestRelease> {
+fn get_youtubedl() -> Result<GithubLatestRelease> {
+    let owner = "ytdl-org".to_owned();
+    let repo = "youtube-dl".to_owned();
+
+    let response = get_github_latest(&owner, &repo)?;
+    let tag_name = jsonpath_lib::select(&response, "$.tag_name")?[0]
+        .as_str()
+        .unwrap();
+
+    let version = tag_name.to_owned();
+
+    let download_assets = DownloadAssets {
+        windows_x86_64: Some(
+            format!("https://github.com/ytdl-org/youtube-dl/releases/download/{version}/youtube-dl.exe")
+        ),
+        windows_x86: Some(
+            format!("https://github.com/ytdl-org/youtube-dl/releases/download/{version}/youtube-dl.exe")
+        ),
+        ..Default::default()
+    };
+
+    let result = GithubLatestRelease {
+        owner,
+        repo,
+        version,
+        download_assets,
+    };
+
+    Ok(result)
+}
+
+fn get_ytdlp() -> Result<GithubLatestRelease> {
     let owner = "yt-dlp".to_owned();
     let repo = "yt-dlp".to_owned();
 
@@ -311,4 +419,16 @@ fn get_youget() -> Result<GithubLatestRelease> {
     };
 
     Ok(result)
+}
+
+fn extract_file_by_7z<S: AsRef<OsStr>>(file: S) -> Result<()> {
+    if let Some(plugin_dir) = get_plugin_dir() {
+        create_hide_window_command("7z")
+            .arg("x")
+            .arg(file)
+            .arg(format!("-o{}", plugin_dir.to_string_lossy()))
+            .output()?;
+    }
+
+    Ok(())
 }
