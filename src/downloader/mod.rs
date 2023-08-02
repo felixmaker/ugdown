@@ -132,7 +132,7 @@ pub fn get_exe_path<S: AsRef<OsStr>>(program: S) -> PathBuf {
 
     if let Some(plugin_dir) = get_plugin_dir() {
         let plugin = plugin_dir.join(&program);
-        if plugin.is_file() {
+        if let Ok(plugin) = which::which(plugin) {
             program = plugin
         }
     }
@@ -141,8 +141,14 @@ pub fn get_exe_path<S: AsRef<OsStr>>(program: S) -> PathBuf {
 }
 
 pub fn get_plugin_dir() -> Option<PathBuf> {
-    std::env::current_exe()
-        .ok()
-        .and_then(|x| x.parent().map(|p| p.to_owned()))
-        .map(|x| x.join("plugins"))
+    if let Some(user_dir) = directories::UserDirs::new() {
+        if let Some(document_dir) = user_dir.document_dir() {
+            let path = document_dir.join("ugdown/plugins");
+            if path.is_dir() == false {
+                let _ = std::fs::create_dir_all(&path);
+            }
+            return Some(path);
+        }
+    }
+    None
 }
