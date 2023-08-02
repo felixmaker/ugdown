@@ -8,7 +8,7 @@ class UserInterface {open
   } {
     Fl_Window window {
       label {Engine Manager} open
-      xywh {371 209 413 224} type Double Hide
+      xywh {371 209 413 254} type Double visible
     } {
       Fl_Button btn_detect {
         label Detect
@@ -24,11 +24,11 @@ class UserInterface {open
       }
       Fl_Button btn_download {
         label {Download select}
-        xywh {15 182 120 25}
+        xywh {15 215 120 25}
       }
       Fl_Button btn_download_extra {
         label {Download select in plugins (Windows)}
-        xywh {145 182 250 25}
+        xywh {145 215 250 25}
       }
       Fl_Choice choice_engine {
         label {Engine: } open
@@ -43,9 +43,13 @@ class UserInterface {open
         xywh {135 84 260 25}
       }
       Fl_Output output_count {
-        label {Count: } selected
+        label {Count: }
         xywh {350 152 45 23}
       }
+      Fl_Choice choice_mirror {
+        label {Download from Github Mirror: } open selected
+        xywh {205 180 190 25} down_box BORDER_BOX
+      } {}
     }
   }
 }

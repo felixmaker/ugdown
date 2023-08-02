@@ -7,7 +7,7 @@ use anyhow::Result;
 use fltk::{prelude::*, *};
 use url::Url;
 
-use crate::downloader::{get_engine, get_plugin_dir};
+use crate::downloader::{get_engine, get_engine_names, get_plugin_dir};
 
 use super::tool_downloader::ToolDownloader;
 
@@ -28,7 +28,11 @@ impl EngineManager {
 
         engine_manager
             .choice_engine
-            .add_choice(crate::downloader::get_engine_names().join("|").as_str());
+            .add_choice(get_engine_names().join("|").as_str());
+
+        engine_manager
+            .choice_mirror
+            .add_choice("kgithub.com|ghproxy.com");
 
         engine_manager.btn_detect.set_callback({
             let engine_manager = engine_manager.clone();
@@ -94,6 +98,7 @@ impl EngineManager {
 
         engine_manager.btn_download.set_callback({
             let choice_assets = engine_manager.choice_assets.clone();
+            let choice_mirror = engine_manager.choice_mirror.clone();
             let current_download_asset = current_download_asset.clone();
             let mut tool_downloader = tool_downloader.clone();
             move |_| {
@@ -118,6 +123,11 @@ impl EngineManager {
 
                                 dialog.show();
                                 let output_path = dialog.filename();
+
+                                let mut url = url.clone();
+                                if let Some(choice_mirror) = choice_mirror.choice() {
+                                    url = replace_github_download(&url, &choice_mirror);
+                                }
 
                                 if output_path.to_string_lossy().len() > 0 {
                                     let title = format!("Downloading {}...", filename);
@@ -167,6 +177,16 @@ impl GithubLatestRelease {
             "you-get" => get_youget().ok(),
             _ => None,
         }
+    }
+}
+
+fn replace_github_download(origin: &str, mirror: &str) -> String {
+    match mirror.to_ascii_lowercase().trim() {
+        "kgithub" | "kgithub.com" => origin.replace("https://github.com", "https://kgithub.com"),
+        "ghproxy" | "ghproxy.com" => {
+            origin.replace("https://github.com", "https://ghproxy.com/github.com")
+        }
+        _ => origin.to_owned(),
     }
 }
 
