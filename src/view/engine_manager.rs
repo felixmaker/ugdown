@@ -16,7 +16,7 @@ mod ui {
 }
 
 pub struct EngineManager {
-    engine_manager: ui::UserInterface
+    engine_manager: ui::UserInterface,
 }
 
 impl EngineManager {
@@ -50,20 +50,20 @@ impl EngineManager {
                 }
 
                 std::thread::spawn(move || -> Result<()> {
-                    let engine_name = engine_manager.choice_engine.choice();
+                    if let Some(engine_name) = engine_manager.choice_engine.choice().clone() {
+                        let (location, version) = get_engine(&engine_name)
+                            .ok()
+                            .and_then(|x| x.get_program().ok())
+                            .map(|(path, version)| (path.to_string_lossy().to_string(), version))
+                            .unwrap_or(("Not Found!".to_owned(), "Unknown".to_owned()));
+                        engine_manager.output_location.set_value(&location);
+                        engine_manager.output_local_version.set_value(&version);
+                    }
 
-                    let (location, version) = engine_name
-                        .clone()
-                        .and_then(|x| get_engine(&x).ok())
-                        .and_then(|x| x.get_program().ok())
-                        .map(|(path, version)| (path.to_string_lossy().to_string(), version))
-                        .unwrap_or(("Not Found".to_owned(), "Unknown".to_owned()));
-
-                    engine_manager.output_location.set_value(&location);
-                    engine_manager.output_local_version.set_value(&version);
-
-                    let latest_release =
-                        engine_name.and_then(|x| GithubLatestRelease::get_from_github_api(&x));
+                    let latest_release = engine_manager
+                        .choice_engine
+                        .choice()
+                        .and_then(|x| GithubLatestRelease::get_from_github_api(&x));
 
                     if let Some(latest_release) = latest_release {
                         engine_manager
@@ -137,9 +137,7 @@ impl EngineManager {
             }
         });
 
-        Self {
-            engine_manager,
-        }
+        Self { engine_manager }
     }
 
     pub fn show(&mut self) {
