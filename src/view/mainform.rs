@@ -17,6 +17,7 @@ impl MainForm {
     pub fn default() -> Self {
         let mut ui = ui::main::UserInterface::make_window();
         let add_url_dialog = AddUrlDialog::default();
+        let mut engine_manager = engine_manager::EngineManager::default();
 
         ui.table_parent.begin();
         let task_table = TaskTable::default();
@@ -136,6 +137,9 @@ impl MainForm {
                         "UgDown\nVersion: {}\n",
                         env!("CARGO_PKG_VERSION")
                     ));
+                }
+                "Engine Manager" => {
+                    engine_manager.show();
                 }
                 _ => {}
             }

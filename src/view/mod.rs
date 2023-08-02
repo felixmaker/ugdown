@@ -3,6 +3,7 @@ mod mainform;
 mod task_table;
 mod tool_downloader;
 mod utils;
+mod engine_manager;
 
 use fltk::{prelude::*, *};
 

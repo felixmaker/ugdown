@@ -8,7 +8,7 @@ class UserInterface {open
   } {
     Fl_Window window {
       label {UgDown - Scrapes the web at ease!} open
-      xywh {357 75 760 460} type Double resizable visible
+      xywh {384 191 760 460} type Double resizable visible
     } {
       Fl_Flex {} {open
         xywh {0 0 760 460} set_size_tuples {3  0 25  1 25  3 24 }
@@ -18,28 +18,37 @@ class UserInterface {open
         } {
           Submenu {} {
             label Task open
-            xywh {25 25 100 20}
+            xywh {30 30 100 20}
           } {
             MenuItem {} {
               label {Add Url}
-              xywh {30 30 100 20}
+              xywh {35 35 100 20}
             }
             MenuItem {} {
               label Exit
-              xywh {25 25 100 20}
+              xywh {30 30 100 20}
+            }
+          }
+          Submenu {} {
+            label Option open selected
+            xywh {15 15 100 20}
+          } {
+            MenuItem {} {
+              label {Engine Manager}
+              xywh {5 5 100 20}
             }
           }
           Submenu {} {
             label Help open
-            xywh {10 10 100 20}
+            xywh {30 30 100 20}
           } {
             MenuItem {} {
               label {README.md}
-              xywh {0 0 100 20}
+              xywh {20 20 100 20}
             }
             MenuItem {} {
               label About
-              xywh {5 5 30 20}
+              xywh {25 25 30 20}
             }
           }
         }
@@ -67,7 +76,7 @@ class UserInterface {open
             xywh {100 25 25 25}
           }
         }
-        Fl_Group table_parent {selected
+        Fl_Group table_parent {
           xywh {0 50 760 386} color 7
         } {}
         Fl_Output output_status {

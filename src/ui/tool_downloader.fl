@@ -1,0 +1,33 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0400
+header_name {.h}
+code_name {.cxx}
+class UserInterface {open
+} {
+  Function {make_window()} {open
+  } {
+    Fl_Window window {open selected
+      xywh {325 214 454 106} type Double color 51 Hide
+    } {
+      Fl_Progress progress {
+        xywh {20 39 410 25}
+      }
+      Fl_Box lable_message {
+        label {Downloading ...}
+        xywh {20 13 410 16} align 20
+      }
+      Fl_Button btn_cancel {
+        label Cancel
+        xywh {365 72 65 23}
+      }
+      Fl_Output output_speed {
+        label {Speed:}
+        xywh {70 71 90 24} box FLAT_BOX color 50
+      }
+      Fl_Output output_total {
+        label {Total:}
+        xywh {210 71 80 24} box FLAT_BOX color 50
+      }
+    }
+  }
+}

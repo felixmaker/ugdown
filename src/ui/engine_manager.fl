@@ -1,0 +1,51 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0400
+header_name {.h}
+code_name {.cxx}
+class UserInterface {open
+} {
+  Function {make_window()} {open
+  } {
+    Fl_Window window {
+      label {Engine Manager} open
+      xywh {371 209 413 224} type Double Hide
+    } {
+      Fl_Button btn_detect {
+        label Detect
+        xywh {335 15 60 25}
+      }
+      Fl_Output output_location {
+        label {Local Location: }
+        xywh {135 51 260 25}
+      }
+      Fl_Output output_version {
+        label {Latest Version: }
+        xywh {135 117 260 25}
+      }
+      Fl_Button btn_download {
+        label {Download select}
+        xywh {15 182 120 25}
+      }
+      Fl_Button btn_download_extra {
+        label {Download select in plugins (Windows)}
+        xywh {145 182 250 25}
+      }
+      Fl_Choice choice_engine {
+        label {Engine: } open
+        xywh {75 16 250 24} down_box BORDER_BOX
+      } {}
+      Fl_Choice choice_assets {
+        label {Download Assets: } open
+        xywh {135 151 155 24} down_box BORDER_BOX
+      } {}
+      Fl_Output output_local_version {
+        label {Local Location: }
+        xywh {135 84 260 25}
+      }
+      Fl_Output output_count {
+        label {Count: } selected
+        xywh {350 152 45 23}
+      }
+    }
+  }
+}
