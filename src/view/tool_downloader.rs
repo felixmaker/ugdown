@@ -75,6 +75,7 @@ impl ToolDownloader {
 
         let mut output_speed = self.downloader.output_speed.clone();
         let mut output_total = self.downloader.output_total.clone();
+        let mut window = self.downloader.window.clone();
 
         std::thread::spawn(move || -> Result<()> {
             let mut response = ureq::get(&url).call()?;
@@ -126,6 +127,7 @@ impl ToolDownloader {
                     progress_widget.set_value(1.0);
                     progress_widget.set_label(&percent_to_string(1.0));
                     std::fs::rename(&temp_path, &output_path)?;
+                    window.hide();
                     break;
                 }
 
