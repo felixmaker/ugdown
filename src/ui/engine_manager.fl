@@ -27,7 +27,7 @@ class UserInterface {open
         xywh {15 215 120 25}
       }
       Fl_Button btn_download_extra {
-        label {Download to plugins (Windows)} selected
+        label {Download to plugins (Windows)}
         xywh {145 215 250 25}
       }
       Fl_Choice choice_engine {
@@ -47,8 +47,8 @@ class UserInterface {open
         xywh {350 152 45 23}
       }
       Fl_Choice choice_mirror {
-        label {Download from Github Mirror: } open
-        xywh {205 180 190 25} down_box BORDER_BOX
+        label {Download from Github Mirror: } open selected
+        xywh {205 182 190 25} down_box BORDER_BOX
       } {}
     }
   }

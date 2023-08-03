@@ -8,8 +8,11 @@ use anyhow::Result;
 use fltk::{prelude::*, *};
 use url::Url;
 
-use crate::downloader::{
-    create_hide_window_command, get_engine, get_engine_names, get_exe_path, get_plugin_dir,
+use crate::{
+    downloader::{
+        create_hide_window_command, get_engine, get_engine_names, get_exe_path, get_plugin_dir,
+    },
+    CHANNEL,
 };
 
 use super::tool_downloader::ToolDownloader;
@@ -18,16 +21,18 @@ mod ui {
     fl2rust_macro::include_ui!("./src/ui/engine_manager.fl");
 }
 
+#[derive(Clone)]
 pub struct EngineManager {
-    engine_manager: ui::UserInterface,
+    pub engine_manager: ui::UserInterface,
     current_download_asset: Arc<Mutex<Option<HashMap<String, String>>>>,
-    tool_downloader: ToolDownloader,
+    pub tool_downloader: ToolDownloader,
 }
 
 impl EngineManager {
     pub fn default() -> Self {
         let tool_downloader = ToolDownloader::default();
         let mut engine_manager = ui::UserInterface::make_window();
+
         let current_download_asset: Arc<Mutex<Option<HashMap<String, String>>>> =
             Default::default();
 
@@ -107,9 +112,9 @@ impl EngineManager {
             let current_download_asset = current_download_asset.clone();
             let mut tool_downloader = tool_downloader.clone();
             move |_| {
-                if let Some(engine) = choice_assets.choice() {
+                if let Some(asset) = choice_assets.choice() {
                     if let Some(current_download_asset) = &*current_download_asset.lock().unwrap() {
-                        if let Some(url) = current_download_asset.get(&engine) {
+                        if let Some(url) = current_download_asset.get(&asset) {
                             if let Ok(result) = Url::parse(url) {
                                 let filename = result
                                     .path_segments()
@@ -135,15 +140,11 @@ impl EngineManager {
                                 }
 
                                 if output_path.to_string_lossy().len() > 0 {
-                                    let title = format!("Downloading {}...", filename);
-                                    if let Err(err) = tool_downloader.start_download(
+                                    tool_downloader.start_download(
                                         &url,
                                         &output_path.to_string_lossy(),
-                                        &title,
-                                        &title,
-                                    ) {
-                                        dialog::alert_default(err.to_string().as_str());
-                                    }
+                                        &format!("Downloading {}...", filename),
+                                    )
                                 }
                             }
                         }
@@ -175,9 +176,13 @@ impl EngineManager {
             let current_download_asset = self.current_download_asset.clone();
             let mut tool_downloader = self.tool_downloader.clone();
             move |_| {
-                if let Some(engine) = choice_assets.choice() {
+                if let Some(asset) = choice_assets.choice() {
+                    if asset.starts_with("windows") == false {
+                        dialog::alert_default("You need to select asset for windows");
+                        return;
+                    }
                     if let Some(current_download_asset) = &*current_download_asset.lock().unwrap() {
-                        if let Some(url) = current_download_asset.get(&engine) {
+                        if let Some(url) = current_download_asset.get(&asset) {
                             if let Ok(result) = Url::parse(url) {
                                 let filename = result
                                     .path_segments()
@@ -190,16 +195,12 @@ impl EngineManager {
                                 if let Some(choice_mirror) = choice_mirror.choice() {
                                     url = replace_github_download(&url, &choice_mirror);
                                 }
-                                let title = format!("Downloading {}...", filename);
-                                if let Err(err) = tool_downloader.start_download(
+
+                                tool_downloader.start_download(
                                     &url,
                                     &output_path.to_string_lossy(),
-                                    &title,
-                                    &title,
-                                ) {
-                                    dialog::alert_default(err.to_string().as_str());
-                                    return;
-                                }
+                                    &format!("Downloading {}...", filename),
+                                );
 
                                 let sz_path = get_exe_path("7z");
                                 if sz_path.is_file() == false {
@@ -208,17 +209,16 @@ impl EngineManager {
                                             "https://www.7-zip.org/a/7zr.exe",
                                             &plugin_dir.join("7z.exe").to_string_lossy(),
                                             "Downloading 7z...",
-                                            "Downloading 7z...",
                                         );
                                     }
                                 }
 
                                 if output_path.to_string_lossy().ends_with(".zip") {
-                                    extract_file_by_7z(filename);
+                                    let _ = extract_file_by_7z(filename);
                                 }
 
                                 if output_path.to_string_lossy().ends_with(".exe") {
-                                    std::fs::copy(output_path, get_plugin_dir().unwrap());
+                                    let _ = std::fs::copy(output_path, get_plugin_dir().unwrap());
                                 }
                             }
                         }
@@ -230,6 +230,12 @@ impl EngineManager {
 
     #[cfg(not(target_os = "windows"))]
     pub fn set_window_only_callback(&self) {}
+
+    pub fn hide(&mut self) {
+        if self.tool_downloader.shown() == false {
+            self.engine_manager.window.hide();
+        }
+    }
 }
 
 fn get_github_latest(owner: &str, repo: &str) -> Result<serde_json::Value> {
@@ -239,6 +245,7 @@ fn get_github_latest(owner: &str, repo: &str) -> Result<serde_json::Value> {
     Ok(response)
 }
 
+#[allow(unused)]
 struct GithubLatestRelease {
     owner: String,
     repo: String,
@@ -340,12 +347,12 @@ fn get_youtubedl() -> Result<GithubLatestRelease> {
     let version = tag_name.to_owned();
 
     let download_assets = DownloadAssets {
-        windows_x86_64: Some(
-            format!("https://github.com/ytdl-org/youtube-dl/releases/download/{version}/youtube-dl.exe")
-        ),
-        windows_x86: Some(
-            format!("https://github.com/ytdl-org/youtube-dl/releases/download/{version}/youtube-dl.exe")
-        ),
+        windows_x86_64: Some(format!(
+            "https://github.com/ytdl-org/youtube-dl/releases/download/{version}/youtube-dl.exe"
+        )),
+        windows_x86: Some(format!(
+            "https://github.com/ytdl-org/youtube-dl/releases/download/{version}/youtube-dl.exe"
+        )),
         ..Default::default()
     };
 

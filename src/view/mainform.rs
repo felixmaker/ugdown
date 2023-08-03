@@ -1,6 +1,6 @@
 use fltk::prelude::*;
 
-use super::*;
+use super::{*, engine_manager::EngineManager};
 
 mod ui {
     pub mod main {
@@ -11,13 +11,14 @@ mod ui {
 pub struct MainForm {
     _ui: ui::main::UserInterface,
     _add_url_dialog: AddUrlDialog,
+    pub engine_manager: EngineManager
 }
 
 impl MainForm {
     pub fn default() -> Self {
         let mut ui = ui::main::UserInterface::make_window();
         let add_url_dialog = AddUrlDialog::default();
-        let mut engine_manager = engine_manager::EngineManager::default();
+        let mut engine_manager = EngineManager::default();
 
         ui.table_parent.begin();
         let task_table = TaskTable::default();
@@ -108,6 +109,7 @@ impl MainForm {
         ui.menubar.set_callback({
             let mut add_url_dialog = add_url_dialog.clone();
             let mut task_table = task_table.clone();
+            let mut engine_manager = engine_manager.clone();
             move |c| match c.choice().unwrap_or("".to_owned()).as_str() {
                 "Add Url" => {
                     if let Some(download_info_vec) = add_url_dialog.request_download_info() {
@@ -148,6 +150,7 @@ impl MainForm {
         Self {
             _ui: ui,
             _add_url_dialog: add_url_dialog,
+            engine_manager
         }
     }
 }
