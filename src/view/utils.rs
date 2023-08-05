@@ -37,7 +37,7 @@ use anyhow::Result;
 use std::collections::HashMap;
 use url::Url;
 
-use crate::downloader::get_plugin_dir;
+
 
 #[allow(unused)]
 #[derive(Clone)]
@@ -263,6 +263,7 @@ use std::path::Path;
 #[cfg(target_os = "windows")]
 pub fn extract_file_to_plugin<S: AsRef<Path>>(file_path: S) -> Result<()> {
     use std::fs::File;
+    use crate::downloader::get_plugin_dir;
 
     let plugin_dir = get_plugin_dir()?;
     let file = File::open(file_path.as_ref())?;
@@ -280,7 +281,7 @@ pub fn extract_file_to_plugin<S: AsRef<Path>>(file_path: S) -> Result<()> {
 }
 
 #[cfg(not(target_os = "windows"))]
-pub fn extract_file_to_plugin<S: AsRef<OsStr>>(file: S) -> Result<()> {
+pub fn extract_file_to_plugin<S: AsRef<Path>>(_file: S) -> Result<()> {
     Ok(())
 }
 
