@@ -157,7 +157,12 @@ fn show_readme() {
 
 fn show_about() {
     dialog::message_title("About");
-    dialog::message_default(&format!("UgDown\nVersion: {}\n", env!("CARGO_PKG_VERSION")));
+    dialog::message_default(&format!(
+        "UgDown\nVersion: {}\nOS: {}({})",
+        env!("CARGO_PKG_VERSION"),
+        std::env::consts::OS,
+        std::env::consts::ARCH,
+    ));
 }
 
 #[derive(Clone)]
