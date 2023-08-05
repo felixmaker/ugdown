@@ -28,7 +28,7 @@ pub struct TaskTable {
 
 impl TaskTable {
     pub fn default() -> Self {
-        let mut table = SmartTable::default_fill();
+        let mut table = SmartTable::default();
         Self::set_table_opts(&mut table);
 
         table.handle(|tb, event| {
@@ -69,11 +69,12 @@ impl TaskTable {
         self.table.redraw();
     }
 
-    pub fn add_tasks(&mut self, download_info_vec: &Vec<DownloadInfo>) {
+    pub fn add_tasks(&mut self, download_info_vec: &Vec<DownloadInfo>) -> usize {
         for download_info in download_info_vec {
             self.task_queue.add_task(download_info);
         }
-        self.update_rows()
+        self.update_rows();
+        download_info_vec.len()
     }
 
     pub fn remove_tasks(&mut self, uuid_vec: &Vec<Uuid>) -> Result<()> {

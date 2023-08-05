@@ -26,6 +26,8 @@ trait StatusBar {
     }
 }
 
-pub use add_url_dialog::AddUrlDialog;
-pub use mainform::MainForm;
+pub use add_url_dialog::{AddUrlDialog, AddUrlDialogMessage};
+pub use mainform::{MainForm, MainFormMessage};
+pub use tool_downloader::{ToolDownloader, ToolDownloaderMessage};
+pub use engine_manager::{EngineManager, EngineManagerMessage};
 pub use task_table::TaskTable;

@@ -130,7 +130,7 @@ pub fn create_hide_window_command<S: AsRef<OsStr>>(program: S) -> Command {
 pub fn get_exe_path<S: AsRef<OsStr>>(program: S) -> PathBuf {
     let mut program: PathBuf = program.as_ref().into();
 
-    if let Some(plugin_dir) = get_plugin_dir() {
+    if let Ok(plugin_dir) = get_plugin_dir() {
         let plugin = plugin_dir.join(&program);
         if let Ok(plugin) = which::which(plugin) {
             program = plugin
@@ -140,15 +140,15 @@ pub fn get_exe_path<S: AsRef<OsStr>>(program: S) -> PathBuf {
     program
 }
 
-pub fn get_plugin_dir() -> Option<PathBuf> {
+pub fn get_plugin_dir() -> Result<PathBuf> {
     if let Some(user_dir) = directories::UserDirs::new() {
         if let Some(document_dir) = user_dir.document_dir() {
             let path = document_dir.join("ugdown/plugins");
             if path.is_dir() == false {
                 let _ = std::fs::create_dir_all(&path);
             }
-            return Some(path);
+            return Ok(path);
         }
     }
-    None
+    Err(anyhow::anyhow!("Unable to local plugin dir"))
 }

@@ -28,3 +28,4 @@ ureq = { version = "2.7.1", features = ["json"] }
 url = "2.4.0"
 uuid = { version = "1.4.0", features = ["v4"] }
 which = "4.4.0"
+zip = "0.6.6"

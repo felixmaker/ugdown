@@ -8,7 +8,7 @@ class UserInterface {open
   } {
     Fl_Window window {
       label {Add Url} open
-      xywh {406 173 460 400} type Double hide resizable modal
+      xywh {406 173 460 400} type Double hide resizable
     } {
       Fl_Flex {} {open
         xywh {0 0 460 400} margins {0 10 0 0} gap 5 set_size_tuples {1  1 24 }
