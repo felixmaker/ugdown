@@ -236,7 +236,7 @@ fn put_to_plugin(output_path: &PathBuf) -> Result<()> {
         std::fs::copy(output_path, get_plugin_dir()?.join(&file_name))?;
     }
     
-    fltk::dialog::message_default(&format!("{} is downloaded and extract to plugin.", &file_name));
+    // fltk::dialog::message_default(&format!("{} is downloaded and extract to plugin.", &file_name));
     send_message(EngineManagerMessage::Detect);
 
     Ok(())
