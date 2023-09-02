@@ -142,13 +142,12 @@ pub fn get_exe_path<S: AsRef<OsStr>>(program: S) -> PathBuf {
 
 pub fn get_plugin_dir() -> Result<PathBuf> {
     if let Some(user_dir) = directories::UserDirs::new() {
-        if let Some(document_dir) = user_dir.document_dir() {
-            let path = document_dir.join("ugdown/plugins");
-            if path.is_dir() == false {
-                let _ = std::fs::create_dir_all(&path);
-            }
-            return Ok(path);
+        let home_dir = user_dir.home_dir();
+        let path = home_dir.join(".ugdown/plugins");
+        if path.is_dir() == false {
+            let _ = std::fs::create_dir_all(&path);
         }
+        return Ok(path);
     }
     Err(anyhow::anyhow!("Unable to local plugin dir"))
 }
