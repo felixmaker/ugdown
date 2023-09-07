@@ -90,16 +90,15 @@ impl AddUrlDialog {
 
         self.add_url_dialog.btn_detect.deactivate();
         let current_cookies = self.current_cookies.clone();
+        let mut add_url_dialog = self.add_url_dialog.clone();
         std::thread::spawn(move || {
             let cookie_file = current_cookies.and_then(|x| store_cookies(&x).ok());
-            if let Ok(stream_info) = get_stream_info(&engine, &url, cookie_file.as_deref()) {
-                send_message(AddUrlDialogMessage::UpdateInfo(Arc::new(stream_info)))
-                // }
-                // Err(err) => {
-                //     // println!("{}", err);
-                //     // add_url_dialog.set_status_bar_error("Failed to detect this url!");
-                //     // add_url_dialog.btn_detect.activate()
-                // }
+            match get_stream_info(&engine, &url, cookie_file.as_deref()) {
+                Ok(stream_info) => send_message(AddUrlDialogMessage::UpdateInfo(Arc::new(stream_info))),
+                Err(error) => {
+                    add_url_dialog.set_status_bar_error(error.to_string().as_str());
+                    add_url_dialog.btn_detect.activate();
+                }
             }
 
             if let Some(cookie_file) = cookie_file {
